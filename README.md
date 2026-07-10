@@ -1,15 +1,22 @@
 # OpenTacker
 
-定期追踪 [paid-open-source-projects](https://github.com/kunovsky/paid-open-source-projects) 列表中的付费开源项目：抓取仓库进展、奖金 Issue、新功能 / 改进 / 优化需求，并生成可行动的贡献报告。
+付费开源接单助手：帮你从 [paid-open-source-projects](https://github.com/kunovsky/paid-open-source-projects) 里，按技能匹配适合自己的 bounty 项目，看清「项目做什么、怎么结算、怎么接单」，并一键跳转认领任务。
+
+包含两部分：
+
+- **Python 追踪器**：定期抓取项目进展、奖金 Issue、新功能 / 改进 / 优化需求，生成报告与 JSON 快照
+- **Next.js 选型界面**：目标选择 → 技能匹配 → 结算说明 → 去接任务的引导式交互
 
 ## 能做什么
 
 1. **拉取付费项目列表** — 解析上游 README 表格（名称、技术栈、报酬、入门链接）
 2. **抓取项目进展** — GitHub stars、open issues、最近 Release、最近更新的 Issue
 3. **识别赚钱机会** — 自动分类：奖金悬赏 / 新功能 / 改进 / 优化 / Bug / 新手友好
-4. **技能过滤** — 在 `config.yaml` 里填你的技术栈，只盯匹配项目
-5. **增量对比** — 对比上次快照，标出新增机会
-6. **定期运行** — 本地 cron 调度，或用 GitHub Actions 每天自动跑
+4. **技能与目标匹配** — 按技术栈、结算清晰度、练手/冲大额等目标筛选项目
+5. **结算说明** — 展示报酬模式、金额、付款时机、平台与认领步骤
+6. **一键去接任务** — 从推荐任务直达 GitHub Issue / bounty 页
+7. **增量对比** — 对比上次快照，标出新增机会
+8. **定期运行** — 本地 cron 调度，或用 GitHub Actions 每天自动跑
 
 ## 快速开始
 
