@@ -22,3 +22,6 @@ web/.next/
 web/out/
 web/.env*.local
 *.log
+
+# Pushing workflows needs GitHub token 'workflow' scope; keep local for now
+.github/workflows/
