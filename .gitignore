@@ -1,0 +1,24 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+data/cache/
+data/history/
+!data/history/.gitkeep
+!data/cache/.gitkeep
+reports/*.md
+reports/*.json
+!reports/.gitkeep
+
+# frontend
+web/node_modules/
+web/.next/
+web/out/
+web/.env*.local
+*.log

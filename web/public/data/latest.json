@@ -1,0 +1,1746 @@
+{
+  "generated_at": "2026-07-10T11:58:04Z",
+  "project_count": 10,
+  "projects": [
+    {
+      "name": "RudderStack",
+      "description": "open source Customer Data Platform (CDP)",
+      "link": "https://github.com/rudderlabs/rudder-server",
+      "tech": [
+        "GO",
+        "TypeScript"
+      ],
+      "payment": "$2,000 USD per bounty",
+      "getting_started": "https://dev.to/rudderstack/devs-wanted-get-paid-to-contribute-to-rudderstack-s-open-source-software-bjp",
+      "github": "rudderlabs/rudder-server",
+      "notes": [
+        "最近推送: 2026-07-10T10:28:38Z",
+        "最新发布: v1.80.1 (2026-07-09T09:43:40Z)"
+      ],
+      "snapshot": {
+        "full_name": "rudderlabs/rudder-server",
+        "stars": 4455,
+        "open_issues": 38,
+        "language": "Go",
+        "pushed_at": "2026-07-10T10:28:38Z",
+        "topics": [
+          "bigquery",
+          "cdp",
+          "customer-data",
+          "customer-data-lake",
+          "customer-data-pipeline",
+          "customer-data-platform",
+          "data-engineering",
+          "data-integration",
+          "data-pipeline",
+          "data-synchronization",
+          "data-warehouse",
+          "elt",
+          "etl",
+          "event-streaming",
+          "privacy",
+          "redshift",
+          "segment-alternative",
+          "snowflake",
+          "warehouse-management",
+          "warehouse-native"
+        ],
+        "error": null,
+        "releases": [
+          {
+            "tag": "v1.80.1",
+            "name": "v1.80.1",
+            "url": "https://github.com/rudderlabs/rudder-server/releases/tag/v1.80.1",
+            "published_at": "2026-07-09T09:43:40Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v1.80.0",
+            "name": "v1.80.0",
+            "url": "https://github.com/rudderlabs/rudder-server/releases/tag/v1.80.0",
+            "published_at": "2026-07-07T06:37:30Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v1.80.0-rc.1",
+            "name": "v1.80.0-rc.1",
+            "url": "https://github.com/rudderlabs/rudder-server/releases/tag/v1.80.0-rc.1",
+            "published_at": "2026-07-06T10:12:40Z",
+            "prerelease": true
+          },
+          {
+            "tag": "v1.79.2",
+            "name": "v1.79.2",
+            "url": "https://github.com/rudderlabs/rudder-server/releases/tag/v1.79.2",
+            "published_at": "2026-07-01T21:52:10Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v1.79.1",
+            "name": "v1.79.1",
+            "url": "https://github.com/rudderlabs/rudder-server/releases/tag/v1.79.1",
+            "published_at": "2026-06-30T15:08:36Z",
+            "prerelease": false
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "optimization",
+          "kind_zh": "优化/性能",
+          "score": 5.5,
+          "title": "Rudderstack becomes extremely slow when you have one destination down",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/4953",
+          "labels": [
+            "Need more info"
+          ],
+          "updated_at": "2025-07-19T02:21:12Z",
+          "comments": 16,
+          "reasons": [
+            "优化/性能相关"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.6,
+          "title": "Crashing with \"panic: failed to migrate ds\"",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/4588",
+          "labels": [
+            "Stale",
+            "Need more info"
+          ],
+          "updated_at": "2026-03-18T14:24:24Z",
+          "comments": 23,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.6,
+          "title": "Backup Errors: Container logs inundated with errors about archiver failing.",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/6630",
+          "labels": [],
+          "updated_at": "2026-03-03T09:23:30Z",
+          "comments": 15,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.45,
+          "title": "Request: Declarative text-based configuration support",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/2045",
+          "labels": [
+            "enhancement"
+          ],
+          "updated_at": "2024-06-03T10:49:13Z",
+          "comments": 3,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "optimization",
+          "kind_zh": "优化/性能",
+          "score": 4.3,
+          "title": "# Feature Request: Add Dark Mode Support Across the Application",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/6990",
+          "labels": [],
+          "updated_at": "2026-05-23T09:04:25Z",
+          "comments": 2,
+          "reasons": [
+            "优化/性能相关"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 4.1,
+          "title": "Enabling \"Enable for cleanup of object storage files (deletion) after successful sync\" causes constant \"context deadline exceeded\" errors",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/6349",
+          "labels": [
+            "Need more info"
+          ],
+          "updated_at": "2026-03-19T07:04:10Z",
+          "comments": 4,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.05,
+          "title": "Sudden error: \"No staging files found",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/5076",
+          "labels": [],
+          "updated_at": "2025-01-17T15:20:32Z",
+          "comments": 7,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.0,
+          "title": "Where to post?",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/4660",
+          "labels": [
+            "Info"
+          ],
+          "updated_at": "2024-05-06T16:53:21Z",
+          "comments": 0,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.75,
+          "title": "K3S deploy rudder-server stdout only one message",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/5341",
+          "labels": [
+            "Need more info"
+          ],
+          "updated_at": "2025-07-19T02:19:27Z",
+          "comments": 5,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 3.65,
+          "title": "What and how to contribute?",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/5166",
+          "labels": [],
+          "updated_at": "2024-10-03T15:26:37Z",
+          "comments": 1,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.45,
+          "title": "fix(batchrouter): file descriptor leak in upload() — outputFile never closed",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/7071",
+          "labels": [],
+          "updated_at": "2026-06-13T06:00:33Z",
+          "comments": 3,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.45,
+          "title": "User details not being sent to Destination Intercom",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/5213",
+          "labels": [
+            "Stale",
+            "Need more info"
+          ],
+          "updated_at": "2025-07-19T02:19:51Z",
+          "comments": 3,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "backupDSLoop exception: mark end of backup operation: driver: bad connection; driver: bad connection",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/4535",
+          "labels": [
+            "Could not reproduce"
+          ],
+          "updated_at": "2024-07-14T09:34:49Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.15,
+          "title": "bug: unprotected concurrent map reads in warehouse slave worker_job.go (data race)",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/7002",
+          "labels": [],
+          "updated_at": "2026-05-24T21:22:48Z",
+          "comments": 1,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.15,
+          "title": "bug: nil channel send in webhook RequestHandler blocks HTTP handler forever (DoS)",
+          "url": "https://github.com/rudderlabs/rudder-server/issues/6999",
+          "labels": [],
+          "updated_at": "2026-05-24T21:22:39Z",
+          "comments": 1,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,000 USD per bounty",
+          "repo": "rudderlabs/rudder-server"
+        }
+      ]
+    },
+    {
+      "name": "openScale",
+      "description": "Open-source weight and body metrics tracker",
+      "link": "https://github.com/oliexdev/openScale",
+      "tech": [
+        "Java",
+        "C++"
+      ],
+      "payment": "$30 USD",
+      "getting_started": "https://www.bountysource.com/issues/103484231-feature-request-support-scale-connection-through-mqtt",
+      "github": "oliexdev/openScale",
+      "notes": [
+        "最近推送: 2026-07-05T06:01:37Z",
+        "最新发布: dev-build (2026-06-27T08:23:14Z)"
+      ],
+      "snapshot": {
+        "full_name": "oliexdev/openScale",
+        "stars": 2427,
+        "open_issues": 10,
+        "language": "Kotlin",
+        "pushed_at": "2026-07-05T06:01:37Z",
+        "topics": [],
+        "error": null,
+        "releases": [
+          {
+            "tag": "dev-build",
+            "name": "openScale development build",
+            "url": "https://github.com/oliexdev/openScale/releases/tag/dev-build",
+            "published_at": "2026-06-27T08:23:14Z",
+            "prerelease": true
+          },
+          {
+            "tag": "v3.1.1",
+            "name": "openScale 3.1.1 release",
+            "url": "https://github.com/oliexdev/openScale/releases/tag/v3.1.1",
+            "published_at": "2026-05-30T15:42:15Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.1.0",
+            "name": "openScale 3.1.0 release",
+            "url": "https://github.com/oliexdev/openScale/releases/tag/v3.1.0",
+            "published_at": "2026-04-10T14:46:51Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.0.3",
+            "name": "openScale 3.0.3 release",
+            "url": "https://github.com/oliexdev/openScale/releases/tag/v3.0.3",
+            "published_at": "2026-03-01T10:46:33Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.0.2",
+            "name": "openScale 3.0.2 release",
+            "url": "https://github.com/oliexdev/openScale/releases/tag/v3.0.2",
+            "published_at": "2026-01-07T14:43:52Z",
+            "prerelease": false
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.0,
+          "title": "[Feature Request] Add a third option for user gender",
+          "url": "https://github.com/oliexdev/openScale/issues/1415",
+          "labels": [],
+          "updated_at": "2026-07-04T12:50:10Z",
+          "comments": 0,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$30 USD",
+          "repo": "oliexdev/openScale"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.0,
+          "title": "[Feature Request] Add height to the supported metrics.",
+          "url": "https://github.com/oliexdev/openScale/issues/1414",
+          "labels": [],
+          "updated_at": "2026-07-04T12:40:43Z",
+          "comments": 0,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$30 USD",
+          "repo": "oliexdev/openScale"
+        }
+      ]
+    },
+    {
+      "name": "Etherpad",
+      "description": "Online collaborative really real-time editor",
+      "link": "https://github.com/ether/etherpad-lite",
+      "tech": [
+        "Javascript"
+      ],
+      "payment": "$80 USD",
+      "getting_started": "https://github.com/ether/etherpad-lite/issues",
+      "github": "ether/etherpad-lite",
+      "notes": [
+        "最近推送: 2026-07-10T09:28:00Z",
+        "最新发布: v3.3.2 (2026-06-21T18:52:19Z)"
+      ],
+      "snapshot": {
+        "full_name": "ether/etherpad-lite",
+        "stars": 18434,
+        "open_issues": 20,
+        "language": "TypeScript",
+        "pushed_at": "2026-07-10T09:28:00Z",
+        "topics": [
+          "collaboration",
+          "collaborative",
+          "collaborative-ai",
+          "collaborative-editing",
+          "collaborative-framework",
+          "collaborative-research",
+          "collaborative-writing",
+          "document",
+          "documents",
+          "etherpad",
+          "pdf-generation",
+          "rich-text-editor",
+          "video-conference",
+          "video-conferencing",
+          "web-editor"
+        ],
+        "error": null,
+        "releases": [
+          {
+            "tag": "v3.3.2",
+            "name": "v3.3.2",
+            "url": "https://github.com/ether/etherpad/releases/tag/v3.3.2",
+            "published_at": "2026-06-21T18:52:19Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.3.1",
+            "name": "v3.3.1",
+            "url": "https://github.com/ether/etherpad/releases/tag/v3.3.1",
+            "published_at": "2026-06-10T10:04:19Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.3.0",
+            "name": "v3.3.0",
+            "url": "https://github.com/ether/etherpad/releases/tag/v3.3.0",
+            "published_at": "2026-06-09T08:58:39Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.2.0",
+            "name": "v3.2.0",
+            "url": "https://github.com/ether/etherpad/releases/tag/v3.2.0",
+            "published_at": "2026-05-22T17:49:07Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v3.1.0",
+            "name": "v3.1.0",
+            "url": "https://github.com/ether/etherpad/releases/tag/v3.1.0",
+            "published_at": "2026-05-17T15:01:11Z",
+            "prerelease": false
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.35,
+          "title": "a11y: Provide an AT-only read view of pad content (line-by-line + link navigation)",
+          "url": "https://github.com/ether/etherpad/issues/7778",
+          "labels": [
+            "Bug",
+            "Waiting on Testing",
+            "UX",
+            "Needs special equipment to test",
+            "a11y"
+          ],
+          "updated_at": "2026-05-19T07:33:31Z",
+          "comments": 9,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$80 USD",
+          "repo": "ether/etherpad-lite"
+        },
+        {
+          "kind": "optimization",
+          "kind_zh": "优化/性能",
+          "score": 4.3,
+          "title": "Performance: [#7756 follow-up] Room-broadcast NEW_CHANGES fan-out to drop ~5-7% per-recipient packet construction",
+          "url": "https://github.com/ether/etherpad/issues/7780",
+          "labels": [
+            "performance"
+          ],
+          "updated_at": "2026-05-24T10:17:03Z",
+          "comments": 2,
+          "reasons": [
+            "优化/性能相关"
+          ],
+          "payment": "$80 USD",
+          "repo": "ether/etherpad-lite"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.15,
+          "title": "Disable pad deletion token UI WITHOUT allowPadDeletionByAllUsers",
+          "url": "https://github.com/ether/etherpad/issues/7996",
+          "labels": [
+            "Feature Request"
+          ],
+          "updated_at": "2026-07-09T08:25:37Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$80 USD",
+          "repo": "ether/etherpad-lite"
+        },
+        {
+          "kind": "optimization",
+          "kind_zh": "优化/性能",
+          "score": 4.0,
+          "title": "Performance: Look deeper into scaling N+ contributors per pad.",
+          "url": "https://github.com/ether/etherpad/issues/7756",
+          "labels": [
+            "Question",
+            "performance"
+          ],
+          "updated_at": "2026-05-18T12:34:50Z",
+          "comments": 0,
+          "reasons": [
+            "优化/性能相关"
+          ],
+          "payment": "$80 USD",
+          "repo": "ether/etherpad-lite"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.0,
+          "title": "TypeError: can't access property \"bottom\", t is null",
+          "url": "https://github.com/ether/etherpad/issues/8038",
+          "labels": [
+            "Needs confirmation",
+            "docker"
+          ],
+          "updated_at": "2026-07-09T13:58:33Z",
+          "comments": 0,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$80 USD",
+          "repo": "ether/etherpad-lite"
+        }
+      ]
+    },
+    {
+      "name": "Conquest of Our Ancestors",
+      "description": "2D grand strategy game",
+      "link": "https://gitlab.com/chozorho/conquest",
+      "tech": [
+        "C++"
+      ],
+      "payment": "$50 USD for first bounty; more TBA",
+      "getting_started": "https://github.com/Encryptr/multigen\\_game#bounties",
+      "github": "Encryptr/multigen",
+      "notes": [
+        "抓取失败: 仓库不存在或不可访问"
+      ],
+      "snapshot": {
+        "full_name": "Encryptr/multigen",
+        "stars": 0,
+        "open_issues": 0,
+        "language": null,
+        "pushed_at": null,
+        "topics": [],
+        "error": "仓库不存在或不可访问",
+        "releases": []
+      },
+      "opportunities": []
+    },
+    {
+      "name": "Appflowy",
+      "description": "Open Source Productivity Tool",
+      "link": "https://www.appflowy.io/",
+      "tech": [
+        "Flutter",
+        "Rust"
+      ],
+      "payment": "$500 per month - Under Mentorship Program",
+      "getting_started": "https://appflowy.gitbook.io/docs/essential-documentation/contribute-to-appflowy/appflowy-mentorship-program/contributor-guidance",
+      "github": null,
+      "notes": [
+        "无 GitHub 仓库快照（可能是官网/GitLab/奖金平台链接）"
+      ],
+      "snapshot": null,
+      "opportunities": []
+    },
+    {
+      "name": "Trigger.dev",
+      "description": "The open source Background Jobs framework for TypeScript",
+      "link": "https://trigger.dev/",
+      "tech": [
+        "Nextjs",
+        "Typescript"
+      ],
+      "payment": "$50 -$200 (depends on the bounty)",
+      "getting_started": "https://github.com/triggerdotdev/trigger.dev/issues",
+      "github": "triggerdotdev/trigger.dev",
+      "notes": [
+        "最近推送: 2026-07-10T11:55:18Z",
+        "最新发布: v4.5.3 (2026-07-10T07:47:34Z)"
+      ],
+      "snapshot": {
+        "full_name": "triggerdotdev/trigger.dev",
+        "stars": 15621,
+        "open_issues": 391,
+        "language": "TypeScript",
+        "pushed_at": "2026-07-10T11:55:18Z",
+        "topics": [
+          "ai",
+          "ai-agent-framework",
+          "ai-agents",
+          "automation",
+          "background-jobs",
+          "mcp",
+          "mcp-server",
+          "nextjs",
+          "orchestration",
+          "scheduler",
+          "serverless",
+          "workflow-automation",
+          "workflows"
+        ],
+        "error": null,
+        "releases": [
+          {
+            "tag": "v4.5.3",
+            "name": "trigger.dev v4.5.3",
+            "url": "https://github.com/triggerdotdev/trigger.dev/releases/tag/v4.5.3",
+            "published_at": "2026-07-10T07:47:34Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v4.5.2",
+            "name": "trigger.dev v4.5.2",
+            "url": "https://github.com/triggerdotdev/trigger.dev/releases/tag/v4.5.2",
+            "published_at": "2026-07-09T13:38:34Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v4.5.1",
+            "name": "trigger.dev v4.5.1",
+            "url": "https://github.com/triggerdotdev/trigger.dev/releases/tag/v4.5.1",
+            "published_at": "2026-07-06T18:34:30Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v4.5.0",
+            "name": "trigger.dev v4.5.0",
+            "url": "https://github.com/triggerdotdev/trigger.dev/releases/tag/v4.5.0",
+            "published_at": "2026-07-02T10:32:06Z",
+            "prerelease": false
+          },
+          {
+            "tag": "v4.5.0-rc.7",
+            "name": "trigger.dev v4.5.0-rc.7",
+            "url": "https://github.com/triggerdotdev/trigger.dev/releases/tag/v4.5.0-rc.7",
+            "published_at": "2026-06-17T12:19:32Z",
+            "prerelease": true
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.35,
+          "title": "[Feature] Official Langfuse integration: auto-trace every task run as a Langfuse generation",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/3884",
+          "labels": [],
+          "updated_at": "2026-07-09T04:31:17Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.25,
+          "title": "feat: Allow email alerts on self-hosted deploys when using SMTP",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/2618",
+          "labels": [],
+          "updated_at": "2026-07-06T22:51:16Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "optimization",
+          "kind_zh": "优化/性能",
+          "score": 4.0,
+          "title": "Vouch Request: ykstorm — fix #3726 (ExponentialBackoff maxElapsed wall-clock)",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/4103",
+          "labels": [],
+          "updated_at": "2026-07-02T04:04:56Z",
+          "comments": 0,
+          "reasons": [
+            "优化/性能相关"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 3.5,
+          "title": "Vouch Request - Hemraj Bhatia",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/4063",
+          "labels": [],
+          "updated_at": "2026-06-28T12:41:38Z",
+          "comments": 0,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 3.5,
+          "title": "Vouch Request - jeelgor",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/4055",
+          "labels": [],
+          "updated_at": "2026-06-26T10:25:30Z",
+          "comments": 0,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.45,
+          "title": "bug: Node.js version mismatch between CONTRIBUTING.md and .nvmrc",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/2765",
+          "labels": [],
+          "updated_at": "2026-07-01T11:07:46Z",
+          "comments": 3,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "bug: GitHub App preview deployments intermittently fail with internal errors; check conclusion can contradict actual deployment status",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/3897",
+          "labels": [],
+          "updated_at": "2026-07-08T22:51:31Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "bug: Cannot install agent Skills",
+          "url": "https://github.com/triggerdotdev/trigger.dev/issues/3984",
+          "labels": [],
+          "updated_at": "2026-06-30T13:51:57Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$50 -$200 (depends on the bounty)",
+          "repo": "triggerdotdev/trigger.dev"
+        }
+      ]
+    },
+    {
+      "name": "Expensify",
+      "description": "Open source project for financial collaboration, centered around chat",
+      "link": "https://github.com/Expensify/App",
+      "tech": [
+        "JavaScript",
+        "Android",
+        "iOS"
+      ],
+      "payment": "$250 - $500 per bounty",
+      "getting_started": "https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md",
+      "github": "Expensify/App",
+      "notes": [
+        "最近推送: 2026-07-10T11:54:57Z",
+        "最新发布: 9.4.32-3-staging (2026-07-09T21:37:24Z)"
+      ],
+      "snapshot": {
+        "full_name": "Expensify/App",
+        "stars": 4934,
+        "open_issues": 2201,
+        "language": "TypeScript",
+        "pushed_at": "2026-07-10T11:54:57Z",
+        "topics": [],
+        "error": null,
+        "releases": [
+          {
+            "tag": "9.4.32-3-staging",
+            "name": "9.4.32-3-staging",
+            "url": "https://github.com/Expensify/App/releases/tag/9.4.32-3-staging",
+            "published_at": "2026-07-09T21:37:24Z",
+            "prerelease": true
+          },
+          {
+            "tag": "9.4.32-2-staging",
+            "name": "9.4.32-2-staging",
+            "url": "https://github.com/Expensify/App/releases/tag/9.4.32-2-staging",
+            "published_at": "2026-07-09T19:32:39Z",
+            "prerelease": true
+          },
+          {
+            "tag": "9.4.32-1-staging",
+            "name": "9.4.32-1-staging",
+            "url": "https://github.com/Expensify/App/releases/tag/9.4.32-1-staging",
+            "published_at": "2026-07-09T16:55:05Z",
+            "prerelease": true
+          },
+          {
+            "tag": "9.4.32-0-staging",
+            "name": "9.4.32-0-staging",
+            "url": "https://github.com/Expensify/App/releases/tag/9.4.32-0-staging",
+            "published_at": "2026-07-09T11:02:57Z",
+            "prerelease": true
+          },
+          {
+            "tag": "9.4.31-0",
+            "name": "9.4.31-0",
+            "url": "https://github.com/Expensify/App/releases/tag/9.4.31-0",
+            "published_at": "2026-07-09T10:39:53Z",
+            "prerelease": false
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 9.0,
+          "title": "[$250] Android - Workflow - \"Next\" and \"Add Approval\" buttons are overlapped by offline indicator.",
+          "url": "https://github.com/Expensify/App/issues/93653",
+          "labels": [
+            "External",
+            "Daily",
+            "Help Wanted",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:55:46Z",
+          "comments": 46,
+          "reasons": [
+            "奖金相关: 金额标记",
+            "help wanted"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 9.0,
+          "title": "[$250] Insufficient spacing between Card name and Issue card button when window is resized",
+          "url": "https://github.com/Expensify/App/issues/94988",
+          "labels": [
+            "External",
+            "Daily",
+            "Help Wanted",
+            "Overdue",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:53:44Z",
+          "comments": 28,
+          "reasons": [
+            "奖金相关: 金额标记",
+            "help wanted"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 9.0,
+          "title": "[$250] Chat view - Clicking nothing for now shows an error when screen size is small",
+          "url": "https://github.com/Expensify/App/issues/95719",
+          "labels": [
+            "External",
+            "Engineering",
+            "Daily",
+            "Help Wanted",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:33:42Z",
+          "comments": 22,
+          "reasons": [
+            "奖金相关: 金额标记",
+            "help wanted"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 7.5,
+          "title": "[Due for payment 2026-06-30] Add stop address editing for GPS mileage",
+          "url": "https://github.com/Expensify/App/issues/85802",
+          "labels": [
+            "Daily",
+            "Internal",
+            "NewFeature"
+          ],
+          "updated_at": "2026-07-10T11:29:26Z",
+          "comments": 60,
+          "reasons": [
+            "奖金相关: 金额标记"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 7.2,
+          "title": "Deploy Checklist: New Expensify 2026-07-09",
+          "url": "https://github.com/Expensify/App/issues/95677",
+          "labels": [
+            "🔐 LockCashDeploys 🔐",
+            "StagingDeployCash",
+            "Daily"
+          ],
+          "updated_at": "2026-07-10T11:19:09Z",
+          "comments": 8,
+          "reasons": [
+            "奖金相关: 🔐 lockcashdeploys 🔐"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 6.55,
+          "title": "Statement trip data is blank for post-paid hotel bookings",
+          "url": "https://github.com/Expensify/App/issues/95534",
+          "labels": [
+            "Daily"
+          ],
+          "updated_at": "2026-07-10T11:24:11Z",
+          "comments": 3,
+          "reasons": [
+            "奖金相关: paid"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 5.0,
+          "title": "Remove `Onyx.connect()` for the key: `ONYXKEYS.SESSION` in `src/libs/ReportActionsUtils.ts`",
+          "url": "https://github.com/Expensify/App/issues/66408",
+          "labels": [
+            "Reviewing",
+            "Engineering",
+            "Weekly",
+            "Improvement",
+            "Not a priority",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:17:23Z",
+          "comments": 36,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.5,
+          "title": "Gusto - Unable to connect - Error: \"We've locked your account\"",
+          "url": "https://github.com/Expensify/App/issues/94927",
+          "labels": [
+            "Daily",
+            "Internal",
+            "Overdue",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:20:35Z",
+          "comments": 23,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.5,
+          "title": "NetSuite - Can't connect to NetSuite: role permission error",
+          "url": "https://github.com/Expensify/App/issues/94793",
+          "labels": [
+            "Daily",
+            "Internal",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:20:23Z",
+          "comments": 23,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.45,
+          "title": "Add persistent bottom-right product marketing window",
+          "url": "https://github.com/Expensify/App/issues/95791",
+          "labels": [
+            "Weekly",
+            "Improvement",
+            "Internal"
+          ],
+          "updated_at": "2026-07-10T11:29:39Z",
+          "comments": 3,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.2,
+          "title": "[Submit] HOLD on #623703 - Approval email coming from Submit WS points back to Classic",
+          "url": "https://github.com/Expensify/App/issues/94971",
+          "labels": [
+            "Reviewing",
+            "Daily",
+            "Internal",
+            "Bug"
+          ],
+          "updated_at": "2026-07-10T11:24:42Z",
+          "comments": 8,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$250 - $500 per bounty",
+          "repo": "Expensify/App"
+        }
+      ]
+    },
+    {
+      "name": "BountyBoard",
+      "description": "Multiple open source projects",
+      "link": "https://bountyboard.dev/",
+      "tech": [
+        "Multiple programming languages"
+      ],
+      "payment": "$10 - $5000 per bounty",
+      "getting_started": "https://bountyboard.dev/#faq",
+      "github": null,
+      "notes": [
+        "无 GitHub 仓库快照（可能是官网/GitLab/奖金平台链接）"
+      ],
+      "snapshot": null,
+      "opportunities": []
+    },
+    {
+      "name": "BusKill",
+      "description": "Open-source laptop kill cord for physical security",
+      "link": "https://github.com/BusKill/buskill-app",
+      "tech": [
+        "QubesOS packaging",
+        "Shell",
+        "Python"
+      ],
+      "payment": "$2,340 USD bounty, less fees",
+      "getting_started": "https://www.buskill.in/qubes-package-bounty/",
+      "github": "BusKill/buskill-app",
+      "notes": [
+        "最近推送: 2026-07-04T23:42:20Z",
+        "最新发布: 28723317869_mac (2026-07-04T23:42:20Z)"
+      ],
+      "snapshot": {
+        "full_name": "BusKill/buskill-app",
+        "stars": 293,
+        "open_issues": 57,
+        "language": "Python",
+        "pushed_at": "2026-07-04T23:42:20Z",
+        "topics": [
+          "anti-forensics",
+          "cli",
+          "deadmanswitch",
+          "gui",
+          "infosec",
+          "kivy",
+          "libusb",
+          "linux",
+          "macos",
+          "opsec",
+          "python",
+          "security",
+          "tripwire",
+          "usb",
+          "windows"
+        ],
+        "error": null,
+        "releases": [
+          {
+            "tag": "28723317869_mac",
+            "name": "Public Build Artifact: Mac 28723317869",
+            "url": "https://github.com/BusKill/buskill-app/releases/tag/28723317869_mac",
+            "published_at": "2026-07-04T23:42:20Z",
+            "prerelease": true
+          },
+          {
+            "tag": "28723317869_linux",
+            "name": "Public Build Artifact: Linux 28723317869",
+            "url": "https://github.com/BusKill/buskill-app/releases/tag/28723317869_linux",
+            "published_at": "2026-07-04T23:41:09Z",
+            "prerelease": true
+          },
+          {
+            "tag": "28723144687_mac",
+            "name": "Public Build Artifact: Mac 28723144687",
+            "url": "https://github.com/BusKill/buskill-app/releases/tag/28723144687_mac",
+            "published_at": "2026-07-04T23:34:27Z",
+            "prerelease": true
+          },
+          {
+            "tag": "28723144687_linux",
+            "name": "Public Build Artifact: Linux 28723144687",
+            "url": "https://github.com/BusKill/buskill-app/releases/tag/28723144687_linux",
+            "published_at": "2026-07-04T23:33:00Z",
+            "prerelease": true
+          },
+          {
+            "tag": "28723076570_mac",
+            "name": "Public Build Artifact: Mac 28723076570",
+            "url": "https://github.com/BusKill/buskill-app/releases/tag/28723076570_mac",
+            "published_at": "2026-07-04T23:31:07Z",
+            "prerelease": true
+          }
+        ]
+      },
+      "opportunities": [
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 7.0,
+          "title": "Deterministic Builds",
+          "url": "https://github.com/BusKill/buskill-app/issues/3",
+          "labels": [
+            "enhancement",
+            "help wanted"
+          ],
+          "updated_at": "2024-08-05T17:37:13Z",
+          "comments": 12,
+          "reasons": [
+            "新功能/增强",
+            "help wanted"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "good_first",
+          "kind_zh": "新手友好",
+          "score": 6.5,
+          "title": "Cryptomator Trigger",
+          "url": "https://github.com/BusKill/buskill-app/issues/59",
+          "labels": [
+            "enhancement",
+            "good first issue",
+            "help wanted"
+          ],
+          "updated_at": "2026-05-23T07:31:20Z",
+          "comments": 10,
+          "reasons": [
+            "新手友好标签",
+            "help wanted"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 5.5,
+          "title": "QubesOS contrib package",
+          "url": "https://github.com/BusKill/buskill-app/issues/106",
+          "labels": [
+            "🇶 QubesOS"
+          ],
+          "updated_at": "2026-07-09T06:57:53Z",
+          "comments": 48,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "good_first",
+          "kind_zh": "新手友好",
+          "score": 5.25,
+          "title": "Veracrypt Self-Destruct Trigger",
+          "url": "https://github.com/BusKill/buskill-app/issues/60",
+          "labels": [
+            "enhancement",
+            "good first issue",
+            "help wanted"
+          ],
+          "updated_at": "2026-05-23T16:40:10Z",
+          "comments": 1,
+          "reasons": [
+            "新手友好标签",
+            "help wanted"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.3,
+          "title": "Modular Triggers",
+          "url": "https://github.com/BusKill/buskill-app/issues/62",
+          "labels": [
+            "enhancement"
+          ],
+          "updated_at": "2026-06-03T01:59:35Z",
+          "comments": 2,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.0,
+          "title": "Add Text Documentation for 3D printed hardware",
+          "url": "https://github.com/BusKill/buskill-app/issues/97",
+          "labels": [],
+          "updated_at": "2025-05-21T14:43:48Z",
+          "comments": 0,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.75,
+          "title": "BusKill.__init__ incompatible with pytest's log handler (_LiveLoggingNullHandler has no baseFilename)",
+          "url": "https://github.com/BusKill/buskill-app/issues/131",
+          "labels": [],
+          "updated_at": "2026-06-16T09:50:16Z",
+          "comments": 5,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.75,
+          "title": "PermissionError: [Errno 13] Permission denied: '/tmp/buskill.log'",
+          "url": "https://github.com/BusKill/buskill-app/issues/75",
+          "labels": [
+            "bug"
+          ],
+          "updated_at": "2026-05-28T17:13:23Z",
+          "comments": 5,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.75,
+          "title": "\"Failed to execute script main\"",
+          "url": "https://github.com/BusKill/buskill-app/issues/98",
+          "labels": [],
+          "updated_at": "2025-09-24T16:51:51Z",
+          "comments": 5,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.6,
+          "title": "bug: upgrade mechanism uses Python file import as IPC, enabling arbitrary code execution via crafted .py files on USB",
+          "url": "https://github.com/BusKill/buskill-app/issues/112",
+          "labels": [],
+          "updated_at": "2026-05-25T04:17:29Z",
+          "comments": 4,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "improvement",
+          "kind_zh": "改进需求",
+          "score": 3.6,
+          "title": "bug: 8 bare except:pass clauses silently swallowing all errors across buskill/__init__.py",
+          "url": "https://github.com/BusKill/buskill-app/issues/115",
+          "labels": [],
+          "updated_at": "2026-05-24T21:32:48Z",
+          "comments": 0,
+          "reasons": [
+            "改进/重构"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.6,
+          "title": "Fix Windows pre-release bug",
+          "url": "https://github.com/BusKill/buskill-app/issues/99",
+          "labels": [
+            "v0.8.0",
+            "🪟 Windows"
+          ],
+          "updated_at": "2025-08-17T19:14:47Z",
+          "comments": 4,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "bug: Kivy RecycleView data mutated from background thread in show_debug_log (crash/corruption)",
+          "url": "https://github.com/BusKill/buskill-app/issues/114",
+          "labels": [],
+          "updated_at": "2026-06-03T03:54:37Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "bug: null pointer dereference in Windows hotplug callback (lparam not validated before from_address)",
+          "url": "https://github.com/BusKill/buskill-app/issues/113",
+          "labels": [],
+          "updated_at": "2026-05-25T04:20:08Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.3,
+          "title": "Buskill doesn't show as a Windows App",
+          "url": "https://github.com/BusKill/buskill-app/issues/96",
+          "labels": [],
+          "updated_at": "2025-02-13T00:13:45Z",
+          "comments": 2,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.15,
+          "title": "build command file",
+          "url": "https://github.com/BusKill/buskill-app/issues/94",
+          "labels": [],
+          "updated_at": "2025-01-22T23:47:54Z",
+          "comments": 1,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.0,
+          "title": "[bug] Clock: Warning, too much iteration done before the next frame",
+          "url": "https://github.com/BusKill/buskill-app/issues/124",
+          "labels": [],
+          "updated_at": "2026-06-03T01:34:18Z",
+          "comments": 0,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.0,
+          "title": "bug: hardcoded developer git path at /home/user/sandbox/buskill-app/.git crashes upgrade flow",
+          "url": "https://github.com/BusKill/buskill-app/issues/111",
+          "labels": [],
+          "updated_at": "2026-05-24T21:32:45Z",
+          "comments": 0,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.0,
+          "title": "Cannot Locally Publish Docs",
+          "url": "https://github.com/BusKill/buskill-app/issues/101",
+          "labels": [],
+          "updated_at": "2025-10-21T21:20:34Z",
+          "comments": 0,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$2,340 USD bounty, less fees",
+          "repo": "BusKill/buskill-app"
+        }
+      ]
+    },
+    {
+      "name": "tscircuit",
+      "description": "React framework for designing electronics/PCBs with code",
+      "link": "https://github.com/tscircuit/tscircuit",
+      "tech": [
+        "TypeScript",
+        "React"
+      ],
+      "payment": "$5 - $300 per bounty (via Algora)",
+      "getting_started": "https://algora.io/tscircuit/bounties/community",
+      "github": "tscircuit/tscircuit",
+      "notes": [
+        "最近推送: 2026-07-10T11:25:01Z"
+      ],
+      "snapshot": {
+        "full_name": "tscircuit/tscircuit",
+        "stars": 2311,
+        "open_issues": 20,
+        "language": "TypeScript",
+        "pushed_at": "2026-07-10T11:25:01Z",
+        "topics": [
+          "cad",
+          "eda",
+          "electronics",
+          "engineering",
+          "hacktoberfest",
+          "kicad",
+          "react",
+          "typescript"
+        ],
+        "error": null,
+        "releases": []
+      },
+      "opportunities": [
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 7.5,
+          "title": "Build the Arduino Nano with tscircuit",
+          "url": "https://github.com/tscircuit/tscircuit/issues/328",
+          "labels": [],
+          "updated_at": "2026-07-02T02:36:28Z",
+          "comments": 64,
+          "reasons": [
+            "奖金相关: bounty"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "bounty",
+          "kind_zh": "奖金悬赏",
+          "score": 6.25,
+          "title": "Feature: dark mode for schematic-viewer, 3d-viewer, and other surfaces lacking it",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3295",
+          "labels": [],
+          "updated_at": "2026-05-30T06:13:54Z",
+          "comments": 1,
+          "reasons": [
+            "奖金相关: reward"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.55,
+          "title": "[Feature Request] Add support for mil (thou) unit alongside mm for proper KiCad grid alignment",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3084",
+          "labels": [],
+          "updated_at": "2026-05-15T10:10:11Z",
+          "comments": 3,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.45,
+          "title": "Feature: edge-plated / castellated PCBs — fab output + 3D rendering",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3297",
+          "labels": [],
+          "updated_at": "2026-06-11T17:38:19Z",
+          "comments": 3,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.3,
+          "title": "Question/Feature Request: How to configure clearance between traces and vias? Current gap is too small",
+          "url": "https://github.com/tscircuit/tscircuit/issues/2820",
+          "labels": [
+            "no-issue-activity"
+          ],
+          "updated_at": "2026-06-26T02:24:59Z",
+          "comments": 2,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.3,
+          "title": "Feature: decouple footprint layers — independently control pads, 3D body, silkscreen outline, and auto-designator",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3296",
+          "labels": [],
+          "updated_at": "2026-06-03T19:42:57Z",
+          "comments": 2,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.25,
+          "title": "Feature: import SVG (or other vector artwork) as silkscreen / fab graphics",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3294",
+          "labels": [],
+          "updated_at": "2026-05-30T06:10:23Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.15,
+          "title": "Bug: bom.csv + pick_and_place.csv (in gerbers bundle) list non-components and miss all component metadata",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3303",
+          "labels": [],
+          "updated_at": "2026-06-01T17:33:06Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.15,
+          "title": "[Feature Request] Add schPinLength property to control schematic pin stem length for grid alignment",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3046",
+          "labels": [],
+          "updated_at": "2026-05-15T10:10:10Z",
+          "comments": 1,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 4.05,
+          "title": "Bug: <cutout> elements present in circuit-json but dropped from Gerber Edge_Cuts and KiCad PCB exports",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3302",
+          "labels": [],
+          "updated_at": "2026-06-06T10:21:31Z",
+          "comments": 7,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "feature",
+          "kind_zh": "新功能",
+          "score": 4.0,
+          "title": "Feature: select PCB surface finish (HASL, ENIG, OSP, …) — fab spec + 3D shading",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3298",
+          "labels": [],
+          "updated_at": "2026-05-30T07:40:01Z",
+          "comments": 0,
+          "reasons": [
+            "新功能/增强"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        },
+        {
+          "kind": "bugfix",
+          "kind_zh": "Bug 修复",
+          "score": 3.0,
+          "title": "Bug: Specctra DSN export produces unusable file — NaN polygon pads, zeroed pin positions, invalid wiring padstack refs",
+          "url": "https://github.com/tscircuit/tscircuit/issues/3301",
+          "labels": [],
+          "updated_at": "2026-05-30T21:58:06Z",
+          "comments": 0,
+          "reasons": [
+            "Bug 修复"
+          ],
+          "payment": "$5 - $300 per bounty (via Algora)",
+          "repo": "tscircuit/tscircuit"
+        }
+      ]
+    }
+  ]
+}

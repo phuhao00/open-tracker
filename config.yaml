@@ -1,0 +1,70 @@
+# OpenTacker 配置
+
+# 付费开源项目列表来源
+source:
+  readme_url: "https://raw.githubusercontent.com/kunovsky/paid-open-source-projects/main/README.md"
+  # 也可指向本地缓存副本
+  # local_readme: "data/source_readme.md"
+
+# 技能/技术栈过滤（空列表 = 不过滤）
+# 只追踪与你技能匹配的项目，提高命中率
+skills:
+  - TypeScript
+  - JavaScript
+  - Python
+  - Go
+  - Rust
+  - Flutter
+  - React
+  - Nextjs
+
+# GitHub 抓取设置
+github:
+  # 每个仓库最多抓取的 open issues 数
+  max_issues_per_repo: 40
+  # 关注的 label 关键词（不区分大小写）
+  bounty_labels:
+    - bounty
+    - paid
+    - reward
+    - algora
+    - cash
+  opportunity_labels:
+    - help wanted
+    - good first issue
+    - enhancement
+    - feature
+    - feature request
+    - improvement
+    - optimization
+    - performance
+    - refactor
+    - bug
+  # 标题/正文中的机会关键词
+  opportunity_keywords:
+    - bounty
+    - paid
+    - reward
+    - feature
+    - enhancement
+    - improve
+    - optimize
+    - performance
+    - refactor
+    - help wanted
+    - 奖金
+    - 悬赏
+
+# 调度：本地 `opentacker schedule` 使用
+schedule:
+  # cron 表达式：每天 9:00
+  cron: "0 9 * * *"
+  timezone: "Asia/Shanghai"
+
+# 输出
+output:
+  reports_dir: "reports"
+  history_dir: "data/history"
+  cache_dir: "data/cache"
+  # 报告语言：zh | en
+  language: "zh"
