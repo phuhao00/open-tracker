@@ -8,19 +8,29 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String?
-  email        String    @unique
-  passwordHash String
-  image        String?
-  skills       String    @default("[]") // JSON string array
-  goal         String    @default("quick") // quick | clear | big | learn
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  accounts     Account[]
-  sessions     Session[]
-  shortlists   Shortlist[]
-  sources      UserSource[]
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  passwordHash   String
+  image          String?
+  skills         String    @default("[]") // JSON string array
+  goal           String    @default("quick") // quick | clear | big | learn
+  headline       String?
+  bio            String?
+  availableHours String    @default("flexible") // fulltime | parttime | weekends | flexible
+  timezone       String?
+  city           String?
+  profilePublic  Boolean   @default(true)
+  reputation     Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  shortlists     Shortlist[]
+  sources        UserSource[]
+  claims         TaskClaim[]
+  activities     Activity[]
+  earnings       Earning[]
 }
 
 model Account {
@@ -57,10 +67,9 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-/// 悬赏数据源（系统内置 + 用户可启用）
 model BountySource {
   id          String   @id @default(cuid())
-  key         String   @unique // paid_list | github_search | algora
+  key         String   @unique
   name        String
   description String
   enabled     Boolean  @default(true)
@@ -73,7 +82,6 @@ model BountySource {
   tasks       BountyTask[]
 }
 
-/// 用户启用的数据源
 model UserSource {
   id       String       @id @default(cuid())
   userId   String
@@ -85,7 +93,6 @@ model UserSource {
   @@unique([userId, sourceId])
 }
 
-/// 统一悬赏任务
 model BountyTask {
   id          String   @id @default(cuid())
   sourceId    String
@@ -95,10 +102,10 @@ model BountyTask {
   projectName String
   repo        String?
   amountText  String?
-  amountMin   Int? // USD cents
+  amountMin   Int?
   amountMax   Int?
   currency    String   @default("USD")
-  techTags    String   @default("[]") // JSON
+  techTags    String   @default("[]")
   kind        String   @default("bounty")
   status      String   @default("open")
   summary     String?
@@ -107,6 +114,8 @@ model BountyTask {
   updatedAt   DateTime @updatedAt
   source      BountySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   shortlists  Shortlist[]
+  claims      TaskClaim[]
+  activities  Activity[]
 
   @@unique([sourceId, externalId])
   @@index([status, amountMax])
@@ -114,15 +123,62 @@ model BountyTask {
 }
 
 model Shortlist {
-  id        String     @id @default(cuid())
-  userId    String
-  taskId    String?
-  projectKey String? // 项目名收藏（兼容旧逻辑）
-  note      String?
-  createdAt DateTime   @default(now())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  task      BountyTask? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id         String     @id @default(cuid())
+  userId     String
+  taskId     String?
+  projectKey String?
+  note       String?
+  createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task       BountyTask? @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([userId, taskId])
   @@unique([userId, projectKey])
+}
+
+/// 认领：灵活就业者声明「我在做这单」，减少撞车
+model TaskClaim {
+  id        String   @id @default(cuid())
+  userId    String
+  taskId    String
+  status    String   @default("working") // working | submitted | paid | dropped
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      BountyTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@index([taskId, status])
+}
+
+/// 社区动态：凝聚协作氛围
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  taskId    String?
+  type      String   // joined | claimed | shared | submitted | paid | tip
+  message   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      BountyTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
+
+/// 自报收益：灵活就业者记录实收，形成个人账本
+model Earning {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  amountCents Int
+  currency    String   @default("USD")
+  projectName String?
+  taskUrl     String?
+  note        String?
+  earnedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, earnedAt])
 }

@@ -20,6 +20,12 @@ export function SiteHeader() {
         <Link href="/match" className={pathname === "/match" ? "active" : ""}>
           智能匹配
         </Link>
+        <Link
+          href="/community"
+          className={pathname.startsWith("/community") ? "active" : ""}
+        >
+          协作社区
+        </Link>
         {status === "authenticated" ? (
           <>
             <Link
@@ -36,7 +42,7 @@ export function SiteHeader() {
           <>
             <Link href="/login">登录</Link>
             <Link href="/register" className="btn-mini">
-              注册
+              加入
             </Link>
           </>
         )}

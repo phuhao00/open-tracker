@@ -45,8 +45,8 @@ export function RegisterForm() {
 
   return (
     <form className="auth-card panel" onSubmit={onSubmit}>
-      <h1>创建账号</h1>
-      <p className="hint">注册后可维护技能、启用数据源，并收藏想接的任务。</p>
+      <h1>加入协作网络</h1>
+      <p className="hint">完善技能与档案后，可匹配悬赏、认领防撞车，并积累公开履历与收益账本。</p>
       <label>
         昵称
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="可选" />

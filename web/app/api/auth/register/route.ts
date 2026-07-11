@@ -45,6 +45,14 @@ export async function POST(req: Request) {
       })),
     });
 
+    await prisma.activity.create({
+      data: {
+        userId: user.id,
+        type: "joined",
+        message: "加入了灵活就业协作网络，准备一起接开源悬赏",
+      },
+    });
+
     return NextResponse.json({ ok: true, userId: user.id });
   } catch (err) {
     return NextResponse.json(
