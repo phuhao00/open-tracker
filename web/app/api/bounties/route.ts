@@ -4,13 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { ensureDefaultSources } from "@/lib/sources/sync";
 import { parseSkills, scoreTaskForUser } from "@/lib/matching";
 
+const SOURCE_LABEL: Record<string, string> = {
+  paid_list: "付费列表",
+  github_search: "GitHub",
+  algora: "Algora",
+};
+
 export async function GET(req: Request) {
   await ensureDefaultSources();
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const sourceKey = searchParams.get("source") ?? "";
   const sort = searchParams.get("sort") || "match"; // match | amount | newest
-  const take = Math.min(Number(searchParams.get("limit") || 60), 100);
+  const page = Math.max(1, Number(searchParams.get("page") || 1) || 1);
+  const pageSize = Math.min(Math.max(Number(searchParams.get("limit") || 10) || 10, 1), 40);
 
   const session = await auth();
   let allowedSourceIds: string[] | null = null;
@@ -31,38 +38,77 @@ export async function GET(req: Request) {
     }
   }
 
-  const tasks = await prisma.bountyTask.findMany({
-    where: {
-      status: "open",
-      ...(allowedSourceIds ? { sourceId: { in: allowedSourceIds } } : {}),
-      ...(sourceKey
-        ? { source: { key: sourceKey } }
-        : { source: { enabled: true } }),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q } },
-              { projectName: { contains: q } },
-              { summary: { contains: q } },
-              { amountText: { contains: q } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      source: true,
-      claims: {
-        where: { status: { in: ["working", "submitted"] } },
-        select: {
-          id: true,
-          status: true,
-          user: { select: { id: true, name: true } },
+  const where = {
+    status: "open" as const,
+    ...(allowedSourceIds ? { sourceId: { in: allowedSourceIds } } : {}),
+    ...(sourceKey
+      ? { source: { key: sourceKey } }
+      : { source: { enabled: true } }),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q } },
+            { projectName: { contains: q } },
+            { summary: { contains: q } },
+            { amountText: { contains: q } },
+          ],
+        }
+      : {}),
+  };
+
+  // Facets ignore current source filter so pills stay stable while paging
+  const facetWhere = {
+    status: "open" as const,
+    ...(allowedSourceIds ? { sourceId: { in: allowedSourceIds } } : {}),
+    source: { enabled: true },
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q } },
+            { projectName: { contains: q } },
+            { summary: { contains: q } },
+            { amountText: { contains: q } },
+          ],
+        }
+      : {}),
+  };
+
+  const [tasks, facetRows] = await Promise.all([
+    prisma.bountyTask.findMany({
+      where,
+      include: {
+        source: true,
+        claims: {
+          where: { status: { in: ["working", "submitted"] } },
+          select: {
+            id: true,
+            status: true,
+            user: { select: { id: true, name: true } },
+          },
         },
       },
-    },
-    orderBy: [{ fetchedAt: "desc" }],
-    take: Math.max(take, 80),
-  });
+      orderBy: [{ fetchedAt: "desc" }],
+      take: 500,
+    }),
+    prisma.bountyTask.findMany({
+      where: facetWhere,
+      select: { source: { select: { key: true, name: true } } },
+      take: 500,
+    }),
+  ]);
+
+  const sourceCounts = new Map<string, { key: string; name: string; count: number }>();
+  for (const row of facetRows) {
+    const key = row.source.key;
+    const cur = sourceCounts.get(key);
+    if (cur) cur.count += 1;
+    else
+      sourceCounts.set(key, {
+        key,
+        name: SOURCE_LABEL[key] || row.source.name,
+        count: 1,
+      });
+  }
 
   const items = tasks.map((t) => {
     const techTags = JSON.parse(t.techTags || "[]") as string[];
@@ -96,9 +142,20 @@ export async function GET(req: Request) {
     items.sort((a, b) => (b.amountMax || 0) - (a.amountMax || 0));
   }
 
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+
   return NextResponse.json({
-    count: items.length,
+    page: safePage,
+    pageSize,
+    total,
+    totalPages,
     personalized: Boolean(session?.user),
-    items: items.slice(0, take),
+    facets: {
+      sources: [...sourceCounts.values()].sort((a, b) => b.count - a.count),
+    },
+    items: items.slice(start, start + pageSize),
   });
 }

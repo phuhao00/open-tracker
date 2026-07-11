@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { PaginationBar } from "@/components/PaginationBar";
 
 type CommunityData = {
   activities: Array<{
@@ -29,6 +30,10 @@ type CommunityData = {
     city: string | null;
     _count: { claims: number; earnings: number };
   }>;
+  pagination: {
+    activities: { page: number; pageSize: number; total: number; totalPages: number };
+    claims: { page: number; pageSize: number; total: number; totalPages: number };
+  };
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -40,60 +45,105 @@ const TYPE_LABEL: Record<string, string> = {
   tip: "动态",
 };
 
+const emptyPagination = {
+  activities: { page: 1, pageSize: 8, total: 0, totalPages: 1 },
+  claims: { page: 1, pageSize: 6, total: 0, totalPages: 1 },
+};
+
 export function CommunityBoard() {
   const { status } = useSession();
   const [data, setData] = useState<CommunityData | null>(null);
+  const [activityPage, setActivityPage] = useState(1);
+  const [claimsPage, setClaimsPage] = useState(1);
   const [tip, setTip] = useState("");
   const [msg, setMsg] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  async function load() {
-    const res = await fetch("/api/community");
-    setData(await res.json());
-  }
+  const load = useCallback(async (aPage = activityPage, cPage = claimsPage) => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      page: String(aPage),
+      limit: "8",
+      claimsPage: String(cPage),
+      claimsLimit: "6",
+    });
+    const res = await fetch(`/api/community?${params}`);
+    const body = await res.json();
+    setData({
+      ...body,
+      pagination: body.pagination || emptyPagination,
+    });
+    setLoading(false);
+  }, [activityPage, claimsPage]);
 
   useEffect(() => {
-    load().catch(() => setData({ activities: [], activeClaims: [], freelancers: [] }));
+    load(1, 1).catch(() =>
+      setData({
+        activities: [],
+        activeClaims: [],
+        freelancers: [],
+        pagination: emptyPagination,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!msg) return;
+    const t = setTimeout(() => setMsg(""), 3600);
+    return () => clearTimeout(t);
+  }, [msg]);
 
   async function postTip() {
     if (status !== "authenticated") {
       setMsg("登录后才能发协作提示");
       return;
     }
+    setPosting(true);
     const res = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: tip }),
     });
     const body = await res.json();
+    setPosting(false);
     if (!res.ok) {
       setMsg(body.error || "发送失败");
       return;
     }
     setTip("");
     setMsg("已分享到社区");
-    await load();
+    setActivityPage(1);
+    await load(1, claimsPage);
   }
 
-  if (!data) return <div className="panel empty">加载社区…</div>;
+  if (!data) return <div className="panel empty soft">加载社区…</div>;
+
+  const aPag = data.pagination.activities;
+  const cPag = data.pagination.claims;
 
   return (
     <div className="community-grid">
       <section className="panel">
         <h2>正在推进的单</h2>
         <p className="hint">看到有人认领，就换一单或先沟通，把灵活就业做成协作而不是内卷。</p>
-        <div className="task-list" style={{ marginTop: "0.8rem" }}>
+        <div className={`task-list list-stage ${loading ? "is-loading" : ""}`} style={{ marginTop: "0.8rem" }}>
           {data.activeClaims.length === 0 && (
             <p className="muted">还没有进行中的认领，去大厅接一单吧。</p>
           )}
-          {data.activeClaims.map((c) => (
-            <article key={c.id} className="task-card">
+          {data.activeClaims.map((c, idx) => (
+            <article
+              key={c.id}
+              className="task-card task-card-interactive"
+              style={{ animationDelay: `${idx * 40}ms` }}
+            >
               <div className="task-main">
                 <div className="task-meta">
                   <Link href={`/u/${c.user.id}`} className="mini-tag">
                     {c.user.name || "伙伴"}
                   </Link>
-                  <span className="badge" style={{ color: "#3DDC97", borderColor: "#3DDC9755" }}>
+                  <span className="badge badge-success">
                     {c.status === "submitted" ? "已提交" : "进行中"}
                   </span>
                   {c.task.amountText && (
@@ -109,26 +159,52 @@ export function CommunityBoard() {
             </article>
           ))}
         </div>
+        <PaginationBar
+          page={cPag.page}
+          totalPages={cPag.totalPages}
+          total={cPag.total}
+          pageSize={cPag.pageSize}
+          disabled={loading}
+          label="个进行中"
+          onChange={(p) => {
+            setClaimsPage(p);
+            load(activityPage, p);
+          }}
+        />
       </section>
 
       <section className="panel">
         <h2>社区动态</h2>
-        <div className="earn-form" style={{ marginTop: "0.8rem" }}>
+        <div className="composer">
           <input
             value={tip}
             onChange={(e) => setTip(e.target.value)}
             placeholder="分享坑点、结算经验、或求组队…"
             maxLength={280}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                postTip();
+              }
+            }}
           />
-          <button type="button" className="btn gold" onClick={postTip}>
-            发动态
+          <button type="button" className="btn gold" disabled={posting || !tip.trim()} onClick={postTip}>
+            {posting ? "发送中…" : "发动态"}
           </button>
         </div>
-        {msg && <p className="toast-inline">{msg}</p>}
-        <div className="feed-list">
+        {msg && (
+          <p className="toast-inline toast-live" role="status">
+            {msg}
+          </p>
+        )}
+        <div className={`feed-list list-stage ${loading ? "is-loading" : ""}`}>
           {data.activities.length === 0 && <p className="muted">还没有动态，注册后会出现。</p>}
-          {data.activities.map((a) => (
-            <div key={a.id} className="feed-item">
+          {data.activities.map((a, idx) => (
+            <div
+              key={a.id}
+              className="feed-item feed-item-interactive"
+              style={{ animationDelay: `${idx * 35}ms` }}
+            >
               <div className="feed-top">
                 <Link href={`/u/${a.user.id}`} className="gold-text">
                   {a.user.name || "伙伴"}
@@ -147,6 +223,18 @@ export function CommunityBoard() {
             </div>
           ))}
         </div>
+        <PaginationBar
+          page={aPag.page}
+          totalPages={aPag.totalPages}
+          total={aPag.total}
+          pageSize={aPag.pageSize}
+          disabled={loading}
+          label="条动态"
+          onChange={(p) => {
+            setActivityPage(p);
+            load(p, claimsPage);
+          }}
+        />
       </section>
 
       <section className="panel">

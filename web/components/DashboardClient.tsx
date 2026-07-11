@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatUsdCents } from "@/lib/matching";
+import { PaginationBar } from "@/components/PaginationBar";
 
 type MeData = {
   id: string;
@@ -101,6 +102,10 @@ export function DashboardClient() {
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [city, setCity] = useState("");
+  const [claimPage, setClaimPage] = useState(1);
+  const [earnPage, setEarnPage] = useState(1);
+  const CLAIM_PAGE = 5;
+  const EARN_PAGE = 5;
 
   async function refresh() {
     const res = await fetch("/api/me");
@@ -196,8 +201,21 @@ export function DashboardClient() {
   }
 
   if (status === "loading" || !me) {
-    return <div className="panel empty">加载工作台…</div>;
+    return <div className="panel empty soft">加载工作台…</div>;
   }
+
+  const claimTotalPages = Math.max(1, Math.ceil(me.claims.length / CLAIM_PAGE));
+  const safeClaimPage = Math.min(claimPage, claimTotalPages);
+  const claimSlice = me.claims.slice(
+    (safeClaimPage - 1) * CLAIM_PAGE,
+    safeClaimPage * CLAIM_PAGE,
+  );
+  const earnTotalPages = Math.max(1, Math.ceil(me.earnings.length / EARN_PAGE));
+  const safeEarnPage = Math.min(earnPage, earnTotalPages);
+  const earnSlice = me.earnings.slice(
+    (safeEarnPage - 1) * EARN_PAGE,
+    safeEarnPage * EARN_PAGE,
+  );
 
   return (
     <div className="dashboard">
@@ -323,8 +341,8 @@ export function DashboardClient() {
         <p className="hint">推进状态会同步到社区，方便伙伴知道你在忙什么。</p>
         <div className="task-list" style={{ marginTop: "0.8rem" }}>
           {me.claims.length === 0 && <p className="muted">还没有认领，去大厅点「我来接这单」。</p>}
-          {me.claims.map((c) => (
-            <article key={c.id} className="task-card">
+          {claimSlice.map((c) => (
+            <article key={c.id} className="task-card task-card-interactive">
               <div className="task-main">
                 <div className="task-meta">
                   <span className="mini-tag">{c.status}</span>
@@ -370,6 +388,14 @@ export function DashboardClient() {
             </article>
           ))}
         </div>
+        <PaginationBar
+          page={safeClaimPage}
+          totalPages={claimTotalPages}
+          total={me.claims.length}
+          pageSize={CLAIM_PAGE}
+          label="个认领"
+          onChange={setClaimPage}
+        />
       </section>
 
       <section className="panel">
@@ -393,8 +419,8 @@ export function DashboardClient() {
           </button>
         </div>
         <div className="task-list" style={{ marginTop: "0.8rem" }}>
-          {me.earnings.map((e) => (
-            <article key={e.id} className="task-card">
+          {earnSlice.map((e) => (
+            <article key={e.id} className="task-card task-card-interactive">
               <div className="task-main">
                 <h4>{e.title}</h4>
                 <p className="muted">{new Date(e.earnedAt).toLocaleDateString("zh-CN")}</p>
@@ -403,6 +429,14 @@ export function DashboardClient() {
             </article>
           ))}
         </div>
+        <PaginationBar
+          page={safeEarnPage}
+          totalPages={earnTotalPages}
+          total={me.earnings.length}
+          pageSize={EARN_PAGE}
+          label="笔收益"
+          onChange={setEarnPage}
+        />
       </section>
 
       <section className="panel">

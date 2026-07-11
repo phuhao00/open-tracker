@@ -9,42 +9,68 @@ const tipSchema = z.object({
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const take = Math.min(Number(searchParams.get("limit") || 40), 80);
+  const page = Math.max(1, Number(searchParams.get("page") || 1) || 1);
+  const pageSize = Math.min(Math.max(Number(searchParams.get("limit") || 8) || 8, 1), 40);
+  const claimsPage = Math.max(1, Number(searchParams.get("claimsPage") || 1) || 1);
+  const claimsPageSize = Math.min(
+    Math.max(Number(searchParams.get("claimsLimit") || 6) || 6, 1),
+    30,
+  );
 
-  const [activities, activeClaims, freelancers] = await Promise.all([
-    prisma.activity.findMany({
-      take,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { id: true, name: true, reputation: true, skills: true } },
-        task: { select: { id: true, title: true, url: true, amountText: true, projectName: true } },
-      },
-    }),
-    prisma.taskClaim.findMany({
-      where: { status: { in: ["working", "submitted"] } },
-      take: 20,
-      orderBy: { updatedAt: "desc" },
-      include: {
-        user: { select: { id: true, name: true, reputation: true } },
-        task: { select: { id: true, title: true, url: true, amountText: true, projectName: true } },
-      },
-    }),
-    prisma.user.findMany({
-      where: { profilePublic: true },
-      orderBy: [{ reputation: "desc" }, { updatedAt: "desc" }],
-      take: 12,
-      select: {
-        id: true,
-        name: true,
-        headline: true,
-        skills: true,
-        reputation: true,
-        availableHours: true,
-        city: true,
-        _count: { select: { claims: true, earnings: true } },
-      },
-    }),
-  ]);
+  const [activityTotal, claimTotal, activities, activeClaims, freelancers] =
+    await Promise.all([
+      prisma.activity.count(),
+      prisma.taskClaim.count({
+        where: { status: { in: ["working", "submitted"] } },
+      }),
+      prisma.activity.findMany({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: { select: { id: true, name: true, reputation: true, skills: true } },
+          task: {
+            select: { id: true, title: true, url: true, amountText: true, projectName: true },
+          },
+        },
+      }),
+      prisma.taskClaim.findMany({
+        where: { status: { in: ["working", "submitted"] } },
+        skip: (claimsPage - 1) * claimsPageSize,
+        take: claimsPageSize,
+        orderBy: { updatedAt: "desc" },
+        include: {
+          user: { select: { id: true, name: true, reputation: true } },
+          task: {
+            select: {
+              id: true,
+              title: true,
+              url: true,
+              amountText: true,
+              projectName: true,
+            },
+          },
+        },
+      }),
+      prisma.user.findMany({
+        where: { profilePublic: true },
+        orderBy: [{ reputation: "desc" }, { updatedAt: "desc" }],
+        take: 12,
+        select: {
+          id: true,
+          name: true,
+          headline: true,
+          skills: true,
+          reputation: true,
+          availableHours: true,
+          city: true,
+          _count: { select: { claims: true, earnings: true } },
+        },
+      }),
+    ]);
+
+  const activityTotalPages = Math.max(1, Math.ceil(activityTotal / pageSize));
+  const claimsTotalPages = Math.max(1, Math.ceil(claimTotal / claimsPageSize));
 
   return NextResponse.json({
     activities: activities.map((a) => ({
@@ -59,6 +85,20 @@ export async function GET(req: Request) {
       ...u,
       skills: JSON.parse(u.skills || "[]"),
     })),
+    pagination: {
+      activities: {
+        page: Math.min(page, activityTotalPages),
+        pageSize,
+        total: activityTotal,
+        totalPages: activityTotalPages,
+      },
+      claims: {
+        page: Math.min(claimsPage, claimsTotalPages),
+        pageSize: claimsPageSize,
+        total: claimTotal,
+        totalPages: claimsTotalPages,
+      },
+    },
   });
 }
 

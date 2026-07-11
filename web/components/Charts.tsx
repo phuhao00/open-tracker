@@ -32,10 +32,11 @@ type ScoreItem = {
 type StarItem = { project: string; stars: number; openIssues: number };
 
 const tooltipStyle = {
-  background: "#0d1824",
-  border: "1px solid rgba(232,184,74,0.25)",
+  background: "#ffffff",
+  border: "1px solid rgba(15,23,42,0.1)",
   borderRadius: 12,
-  color: "#e8eef6",
+  color: "#101828",
+  boxShadow: "0 8px 24px rgba(16,24,40,0.08)",
 };
 
 export function KindPieChart({ data }: { data: KindItem[] }) {
@@ -74,13 +75,13 @@ export function ProjectBarChart({ data }: { data: ProjectItem[] }) {
     <div className="chart-box tall">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ left: 16, right: 12 }}>
-          <CartesianGrid stroke="rgba(143,160,181,0.12)" horizontal={false} />
-          <XAxis type="number" stroke="#8fa0b5" fontSize={12} />
+          <CartesianGrid stroke="rgba(15,23,42,0.08)" horizontal={false} />
+          <XAxis type="number" stroke="#667085" fontSize={12} />
           <YAxis
             type="category"
             dataKey="project"
             width={100}
-            stroke="#8fa0b5"
+            stroke="#667085"
             fontSize={12}
           />
           <Tooltip
@@ -90,8 +91,8 @@ export function ProjectBarChart({ data }: { data: ProjectItem[] }) {
               name === "count" ? "机会数" : name === "bounty" ? "奖金类" : name,
             ]}
           />
-          <Bar dataKey="count" name="机会数" fill="#5B8DEF" radius={[0, 8, 8, 0]} />
-          <Bar dataKey="bounty" name="奖金类" fill="#E8B84A" radius={[0, 8, 8, 0]} />
+          <Bar dataKey="count" name="机会数" fill="#4E5BA6" radius={[0, 8, 8, 0]} />
+          <Bar dataKey="bounty" name="奖金类" fill="#155EEF" radius={[0, 8, 8, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -103,17 +104,17 @@ export function TopScoreChart({ data }: { data: ScoreItem[] }) {
     <div className="chart-box tall">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: 8, right: 8, bottom: 48 }}>
-          <CartesianGrid stroke="rgba(143,160,181,0.12)" vertical={false} />
+          <CartesianGrid stroke="rgba(15,23,42,0.08)" vertical={false} />
           <XAxis
             dataKey="name"
-            stroke="#8fa0b5"
+            stroke="#667085"
             fontSize={11}
             interval={0}
             angle={-28}
             textAnchor="end"
             height={70}
           />
-          <YAxis stroke="#8fa0b5" fontSize={12} />
+          <YAxis stroke="#667085" fontSize={12} />
           <Tooltip
             contentStyle={tooltipStyle}
             labelFormatter={(_, payload) => payload?.[0]?.payload?.fullTitle ?? ""}
@@ -124,7 +125,7 @@ export function TopScoreChart({ data }: { data: ScoreItem[] }) {
           />
           <Bar dataKey="score" radius={[8, 8, 0, 0]}>
             {data.map((item) => (
-              <Cell key={item.fullTitle} fill={KIND_COLORS[item.kind] ?? "#E8B84A"} />
+              <Cell key={item.fullTitle} fill={KIND_COLORS[item.kind] ?? "#155EEF"} />
             ))}
           </Bar>
         </BarChart>
@@ -138,9 +139,9 @@ export function StarsChart({ data }: { data: StarItem[] }) {
     <div className="chart-box">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: 8, right: 8 }}>
-          <CartesianGrid stroke="rgba(143,160,181,0.12)" vertical={false} />
-          <XAxis dataKey="project" stroke="#8fa0b5" fontSize={12} />
-          <YAxis stroke="#8fa0b5" fontSize={12} />
+          <CartesianGrid stroke="rgba(15,23,42,0.08)" vertical={false} />
+          <XAxis dataKey="project" stroke="#667085" fontSize={12} />
+          <YAxis stroke="#667085" fontSize={12} />
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(value: number, name: string) => [
@@ -148,7 +149,7 @@ export function StarsChart({ data }: { data: StarItem[] }) {
               name === "stars" ? "Stars" : "Open Issues",
             ]}
           />
-          <Bar dataKey="stars" fill="#3DDC97" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="stars" fill="#0F766E" radius={[8, 8, 0, 0]} />
           <Bar dataKey="openIssues" fill="#FF7A59" radius={[8, 8, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
