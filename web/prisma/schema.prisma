@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  image        String?
+  skills       String    @default("[]") // JSON string array
+  goal         String    @default("quick") // quick | clear | big | learn
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  accounts     Account[]
+  sessions     Session[]
+  shortlists   Shortlist[]
+  sources      UserSource[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+/// 悬赏数据源（系统内置 + 用户可启用）
+model BountySource {
+  id          String   @id @default(cuid())
+  key         String   @unique // paid_list | github_search | algora
+  name        String
+  description String
+  enabled     Boolean  @default(true)
+  configJson  String   @default("{}")
+  lastSyncAt  DateTime?
+  lastError   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userLinks   UserSource[]
+  tasks       BountyTask[]
+}
+
+/// 用户启用的数据源
+model UserSource {
+  id       String       @id @default(cuid())
+  userId   String
+  sourceId String
+  enabled  Boolean      @default(true)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source   BountySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceId])
+}
+
+/// 统一悬赏任务
+model BountyTask {
+  id          String   @id @default(cuid())
+  sourceId    String
+  externalId  String
+  title       String
+  url         String
+  projectName String
+  repo        String?
+  amountText  String?
+  amountMin   Int? // USD cents
+  amountMax   Int?
+  currency    String   @default("USD")
+  techTags    String   @default("[]") // JSON
+  kind        String   @default("bounty")
+  status      String   @default("open")
+  summary     String?
+  rawJson     String   @default("{}")
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  source      BountySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  shortlists  Shortlist[]
+
+  @@unique([sourceId, externalId])
+  @@index([status, amountMax])
+  @@index([projectName])
+}
+
+model Shortlist {
+  id        String     @id @default(cuid())
+  userId    String
+  taskId    String?
+  projectKey String? // 项目名收藏（兼容旧逻辑）
+  note      String?
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      BountyTask? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@unique([userId, projectKey])
+}

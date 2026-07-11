@@ -107,16 +107,22 @@ opentacker/
 ## 图表网站（Next.js）
 
 ```bash
-# 先确保有最新数据
+# 先确保有最新数据（可选，智能匹配页用）
 opentacker run --all
 
 # 启动前端
 cd web
+cp .env.example .env   # 首次：配置 AUTH_SECRET / 可选 GITHUB_TOKEN
 npm install
+npx prisma db push
 npm run dev
 ```
 
-浏览器打开 http://localhost:3000 ，可看类型分布、项目机会柱状图、高分榜与可筛选机会表。
+浏览器打开 http://localhost:3000 ：
+
+- **悬赏大厅**：多源自动抓取（付费列表 / GitHub / Algora），登录后可同步与收藏
+- **智能匹配**：按技能与结算画像选型
+- **注册/登录 + 我的工作台**：管理技能、目标、数据源开关、短名单
 
 ## License
 

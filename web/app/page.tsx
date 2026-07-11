@@ -1,27 +1,22 @@
-import { MatchWorkspace } from "@/components/MatchWorkspace";
-import { loadSnapshot } from "@/lib/data";
+import { BountyHall } from "@/components/BountyHall";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const snapshot = await loadSnapshot();
-
+export default function HomePage() {
   return (
-    <main className="shell">
+    <main>
       <header className="hero">
         <h1 className="brand">
           Open<span>Tacker</span>
         </h1>
         <p className="lede">
-          别自己在 Issue 海里瞎翻。告诉我你想怎么赚钱、你会什么，我帮你缩小到几个靠谱项目，
-          把结算讲清楚，再带你去接任务。
+          不只盯一个列表。自动从付费开源清单、GitHub 悬赏 Issue、Algora 等来源抓取任务；
+          注册登录后，按你的技能与目标管理、收藏，并一键去接单。
         </p>
       </header>
-
-      <MatchWorkspace projects={snapshot.projects} generatedAt={snapshot.generated_at} />
-
+      <BountyHall />
       <p className="footer">
-        简介与结算说明为人工整理，接单前请再核对官方页面。你的技能/目标/短名单会保存在本机浏览器。
+        提示：首次使用请先注册/登录，再点「立即抓取网上悬赏」。智能匹配页仍可按项目画像选型。
       </p>
     </main>
   );
