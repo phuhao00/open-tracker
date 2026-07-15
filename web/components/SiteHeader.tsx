@@ -7,6 +7,20 @@ import { signOut, useSession } from "next-auth/react";
 export function SiteHeader() {
   const { data, status } = useSession();
   const pathname = usePathname();
+  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  if (isAuth) {
+    return (
+      <header className="topnav topnav-auth">
+        <Link href="/" className="topnav-brand">
+          Open<span>Tacker</span>
+        </Link>
+        <Link href="/" className="topnav-back">
+          返回大厅
+        </Link>
+      </header>
+    );
+  }
 
   return (
     <header className="topnav">
@@ -15,16 +29,16 @@ export function SiteHeader() {
       </Link>
       <nav className="topnav-links">
         <Link href="/" className={pathname === "/" ? "active" : ""}>
-          机会大厅
+          大厅
         </Link>
         <Link href="/match" className={pathname === "/match" ? "active" : ""}>
-          智能匹配
+          匹配
         </Link>
         <Link
           href="/community"
           className={pathname.startsWith("/community") ? "active" : ""}
         >
-          协作社区
+          社区
         </Link>
         {status === "authenticated" ? (
           <>
@@ -32,17 +46,23 @@ export function SiteHeader() {
               href="/dashboard"
               className={pathname.startsWith("/dashboard") ? "active" : ""}
             >
-              我的工作台
+              工作台
             </Link>
-            <button type="button" className="linkish" onClick={() => signOut({ callbackUrl: "/" })}>
-              退出 {data.user?.name || ""}
+            <button
+              type="button"
+              className="linkish"
+              onClick={() => signOut({ callbackUrl: "/" })}
+            >
+              退出
             </button>
           </>
         ) : (
           <>
-            <Link href="/login">登录</Link>
+            <Link href="/login" className={pathname.startsWith("/login") ? "active" : ""}>
+              登录
+            </Link>
             <Link href="/register" className="btn-mini">
-              加入
+              注册
             </Link>
           </>
         )}

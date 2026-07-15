@@ -23,8 +23,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenTacker · 付费开源接单助手",
-  description: "多源自动抓取悬赏任务，注册登录后管理技能、数据源与短名单",
+  title: "OpenTacker · 全球灵活就业与招聘聚合",
+  description: "发现开源悬赏、远程兼职岗位与招聘门户入口，按技能匹配并协作认领",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

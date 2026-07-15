@@ -325,10 +325,8 @@ export function BountyHall() {
     <section className="hall">
       <div className="panel hall-hero">
         <div>
-          <h2>全球机会大厅</h2>
-          <p className="hint">
-            按「大类 → 地区 → 用工形态 → 数据源」分层筛选。门户入口只做跳转；岗位与悬赏可认领协作。
-          </p>
+          <h2>机会分类</h2>
+          <p className="hint">先选大类，再在左侧收窄地区与形态。</p>
         </div>
         <div className="hall-actions">
           <button type="button" className="btn gold" onClick={syncAll} disabled={syncing}>
