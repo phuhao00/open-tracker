@@ -17,6 +17,9 @@ model User {
   goal           String    @default("quick") // quick | clear | big | learn
   headline       String?
   bio            String?
+  aboutLong      String?   // 完整自我介绍
+  socialsJson    String    @default("[]") // [{platform,url,label?}]
+  videosJson     String    @default("[]") // [{title?,url}]
   availableHours String    @default("flexible") // fulltime | parttime | weekends | flexible
   timezone       String?
   city           String?

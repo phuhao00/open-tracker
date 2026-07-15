@@ -164,14 +164,19 @@ textarea {
   min-height: calc(100vh - 5.5rem);
   display: grid;
   align-items: center;
-  padding: 0.5rem 0 2rem;
+  padding: 0.5rem 0.25rem 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .auth-shell {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: 0;
   width: min(960px, 100%);
+  max-width: 100%;
   margin: 0 auto;
   border: 1px solid var(--line);
   border-radius: 22px;
@@ -191,6 +196,7 @@ textarea {
   align-content: center;
   gap: 0.85rem;
   min-height: 420px;
+  min-width: 0;
 }
 
 .auth-kicker {
@@ -248,18 +254,25 @@ textarea {
 .auth-panel {
   display: grid;
   place-items: center;
-  padding: 2rem 1.5rem;
+  justify-items: stretch;
+  padding: 2.25rem 2.25rem;
   background: #fff;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .auth-card {
-  width: min(360px, 100%);
+  width: 100%;
+  max-width: 360px;
+  min-width: 0;
+  margin: 0 auto;
   display: grid;
   gap: 0.85rem;
   border: 0;
   background: transparent;
   box-shadow: none;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .auth-card h1 {
@@ -280,9 +293,14 @@ textarea {
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 550;
+  min-width: 0;
 }
 
 .auth-card input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #f8fafc;
   color: var(--text);
   border: 1px solid var(--line-strong);
@@ -307,12 +325,15 @@ textarea {
 
 .auth-field-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.7rem;
+  min-width: 0;
 }
 
 .auth-submit {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   margin-top: 0.25rem;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -354,6 +375,10 @@ textarea {
   .auth-visual {
     min-height: auto;
     padding: 1.6rem 1.4rem;
+  }
+
+  .auth-panel {
+    padding: 1.5rem 1.25rem 1.75rem;
   }
 
   .auth-field-row {
@@ -607,6 +632,44 @@ textarea {
   margin: 0.75rem 0 0;
   color: var(--mint);
   font-size: 0.9rem;
+}
+
+.toast-inline.toast-err {
+  color: #b42318;
+}
+
+.toast-beside {
+  margin: 0;
+}
+
+.save-profile-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 0.8rem;
+}
+
+.dashboard-float-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  z-index: 80;
+  max-width: min(92vw, 420px);
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  color: var(--mint);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.dashboard-float-toast.toast-err {
+  color: #b42318;
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
 }
 
 .dashboard {
@@ -1957,6 +2020,265 @@ textarea {
 
 .profile-stats .value.gold {
   color: var(--gold);
+}
+
+.social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.social-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-size: 0.82rem;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.social-chip:hover {
+  border-color: var(--accent, #155eef);
+  background: color-mix(in srgb, var(--accent, #155eef) 8%, white);
+}
+
+.about-long {
+  margin-top: 0.75rem;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text);
+  font-size: 0.98rem;
+}
+
+.github-embed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.github-embed-head h2 {
+  margin: 0;
+}
+
+.github-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.github-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.github-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.7rem;
+}
+
+.github-bio {
+  margin: 0.45rem 0 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.github-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.github-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.1rem;
+  margin-top: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.github-stats strong {
+  font-family: var(--font-mono);
+  margin-right: 0.2rem;
+}
+
+.github-chart-wrap {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.github-chart {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin-top: 0.45rem;
+  border-radius: 8px;
+}
+
+.github-repos {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.github-repos h3 {
+  margin: 0 0 0.7rem;
+  font-size: 1rem;
+}
+
+.github-repo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.7rem;
+}
+
+.github-repo-card {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.github-repo-card:hover {
+  border-color: var(--accent, #155eef);
+}
+
+.github-repo-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.github-repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 640px) {
+  .github-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.video-card h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.55rem;
+}
+
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #0b1220;
+}
+
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-source,
+.tiny {
+  display: inline-block;
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.profile-editor-block {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.profile-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.profile-editor-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.link-editor-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.link-editor-row {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.link-editor-row.video-row {
+  grid-template-columns: minmax(100px, 0.7fr) 1.4fr auto;
+}
+
+.link-editor-row select,
+.link-editor-row input {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .link-editor-row,
+  .link-editor-row.video-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-grid {

@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatUsdCents } from "@/lib/matching";
 import { PaginationBar } from "@/components/PaginationBar";
+import {
+  SOCIAL_PLATFORMS,
+  type SocialLink,
+  type VideoLink,
+} from "@/lib/profile-media";
 
 type MeData = {
   id: string;
@@ -13,6 +18,9 @@ type MeData = {
   email: string;
   headline: string | null;
   bio: string | null;
+  aboutLong: string | null;
+  socials: SocialLink[];
+  videos: VideoLink[];
   availableHours: string;
   city: string | null;
   profilePublic: boolean;
@@ -96,12 +104,17 @@ export function DashboardClient() {
   const router = useRouter();
   const [me, setMe] = useState<MeData | null>(null);
   const [msg, setMsg] = useState("");
+  const [msgTone, setMsgTone] = useState<"ok" | "err">("ok");
+  const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [earnTitle, setEarnTitle] = useState("");
   const [earnAmount, setEarnAmount] = useState("100");
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
+  const [aboutLong, setAboutLong] = useState("");
   const [city, setCity] = useState("");
+  const [socials, setSocials] = useState<SocialLink[]>([]);
+  const [videos, setVideos] = useState<VideoLink[]>([]);
   const [claimPage, setClaimPage] = useState(1);
   const [earnPage, setEarnPage] = useState(1);
   const CLAIM_PAGE = 5;
@@ -117,7 +130,10 @@ export function DashboardClient() {
     setMe(data);
     setHeadline(data.headline || "");
     setBio(data.bio || "");
+    setAboutLong(data.aboutLong || "");
     setCity(data.city || "");
+    setSocials(Array.isArray(data.socials) ? data.socials : []);
+    setVideos(Array.isArray(data.videos) ? data.videos : []);
   }
 
   useEffect(() => {
@@ -125,14 +141,42 @@ export function DashboardClient() {
     if (status === "authenticated") refresh();
   }, [status, router]);
 
+  useEffect(() => {
+    if (!msg) return;
+    const t = setTimeout(() => setMsg(""), 4200);
+    return () => clearTimeout(t);
+  }, [msg]);
+
+  function flash(text: string, tone: "ok" | "err" = "ok") {
+    setMsgTone(tone);
+    setMsg(text);
+  }
+
   async function saveProfile(patch: Record<string, unknown>) {
-    const res = await fetch("/api/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
-    setMsg(res.ok ? "已保存" : "保存失败");
-    if (res.ok) await refresh();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      let body: { error?: string } = {};
+      try {
+        body = await res.json();
+      } catch {
+        /* ignore */
+      }
+      if (!res.ok) {
+        flash(body.error || `保存失败（${res.status}）`, "err");
+        return;
+      }
+      flash("档案已保存");
+      await refresh();
+    } catch {
+      flash("网络异常，请稍后重试", "err");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function toggleSource(sourceId: string, enabled: boolean) {
@@ -141,7 +185,7 @@ export function DashboardClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sourceId, enabled }),
     });
-    setMsg(enabled ? "已启用数据源" : "已关闭数据源");
+    flash(enabled ? "已启用数据源" : "已关闭数据源");
     await refresh();
   }
 
@@ -154,7 +198,7 @@ export function DashboardClient() {
     });
     const data = await res.json();
     setSyncing(false);
-    setMsg(res.ok ? "同步完成" : data.error || "同步失败");
+    flash(res.ok ? "同步完成" : data.error || "同步失败", res.ok ? "ok" : "err");
     await refresh();
   }
 
@@ -164,14 +208,14 @@ export function DashboardClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskId, status: nextStatus }),
     });
-    setMsg(res.ok ? "认领状态已更新" : "更新失败");
+    flash(res.ok ? "认领状态已更新" : "更新失败", res.ok ? "ok" : "err");
     await refresh();
   }
 
   async function addEarning() {
     const dollars = Number(earnAmount);
     if (!earnTitle || !Number.isFinite(dollars) || dollars <= 0) {
-      setMsg("请填写收益标题和金额（美元）");
+      flash("请填写收益标题和金额（美元）", "err");
       return;
     }
     const res = await fetch("/api/earnings", {
@@ -185,10 +229,10 @@ export function DashboardClient() {
     if (res.ok) {
       setEarnTitle("");
       setEarnAmount("100");
-      setMsg("已记录收益，并同步到社区动态");
+      flash("已记录收益，并同步到社区动态");
       await refresh();
     } else {
-      setMsg("记录失败");
+      flash("记录失败", "err");
     }
   }
 
@@ -219,6 +263,14 @@ export function DashboardClient() {
 
   return (
     <div className="dashboard">
+      {msg && (
+        <p
+          className={`dashboard-float-toast toast-live ${msgTone === "err" ? "toast-err" : ""}`}
+          role="status"
+        >
+          {msg}
+        </p>
+      )}
       <section className="panel">
         <div className="dash-top">
           <div>
@@ -237,12 +289,14 @@ export function DashboardClient() {
             </Link>
           </div>
         </div>
-        {msg && <p className="toast-inline">{msg}</p>}
       </section>
 
       <section className="panel">
-        <h2>对外档案（凝聚信任）</h2>
-        <p className="hint">写清楚你会什么、什么时间能接，方便伙伴转介任务。</p>
+        <h2>对外档案（全面介绍自己）</h2>
+        <p className="hint">
+          文字 + 视频 + 社交主页，让招聘方 / 伙伴一眼了解你。保存后可在{" "}
+          <Link href={`/u/${me.id}`}>公开主页</Link> 预览。
+        </p>
         <div className="form-grid">
           <label>
             一句话介绍
@@ -257,15 +311,125 @@ export function DashboardClient() {
             <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="上海 / UTC+8" />
           </label>
           <label className="full">
-            简介
+            短简介（列表摘要）
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              rows={3}
+              rows={2}
               placeholder="过往接单经验、擅长栈、沟通方式…"
             />
           </label>
+          <label className="full">
+            完整自我介绍
+            <textarea
+              value={aboutLong}
+              onChange={(e) => setAboutLong(e.target.value)}
+              rows={8}
+              placeholder="经历、代表项目、合作方式、可接类型、时段偏好…（最多约 6000 字）"
+            />
+          </label>
         </div>
+
+        <div className="profile-editor-block">
+          <div className="profile-editor-head">
+            <h3>社交 / 平台主页</h3>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setSocials((prev) => [...prev, { platform: "github", url: "" }])}
+            >
+              + 添加链接
+            </button>
+          </div>
+          {socials.length === 0 && <p className="muted">还没有社交链接，添加 GitHub、LinkedIn、B 站等主页。</p>}
+          <div className="link-editor-list">
+            {socials.map((s, i) => (
+              <div key={i} className="link-editor-row">
+                <select
+                  value={s.platform}
+                  onChange={(e) => {
+                    const next = [...socials];
+                    next[i] = { ...next[i], platform: e.target.value };
+                    setSocials(next);
+                  }}
+                >
+                  {SOCIAL_PLATFORMS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={s.url}
+                  onChange={(e) => {
+                    const next = [...socials];
+                    next[i] = { ...next[i], url: e.target.value };
+                    setSocials(next);
+                  }}
+                  placeholder={
+                    SOCIAL_PLATFORMS.find((p) => p.id === s.platform)?.placeholder || "https://..."
+                  }
+                />
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setSocials(socials.filter((_, j) => j !== i))}
+                >
+                  删除
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="profile-editor-block">
+          <div className="profile-editor-head">
+            <h3>介绍视频（多平台链接）</h3>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setVideos((prev) => [...prev, { title: "", url: "" }])}
+            >
+              + 添加视频
+            </button>
+          </div>
+          <p className="hint">
+            粘贴 YouTube / Bilibili / Vimeo / Loom 等视频页链接，公开主页会尽量内嵌播放；不支持内嵌的会显示跳转按钮。
+          </p>
+          {videos.length === 0 && <p className="muted">可放自我介绍、Demo、talk 录屏等。</p>}
+          <div className="link-editor-list">
+            {videos.map((v, i) => (
+              <div key={i} className="link-editor-row video-row">
+                <input
+                  value={v.title || ""}
+                  onChange={(e) => {
+                    const next = [...videos];
+                    next[i] = { ...next[i], title: e.target.value };
+                    setVideos(next);
+                  }}
+                  placeholder="标题（可选）"
+                />
+                <input
+                  value={v.url}
+                  onChange={(e) => {
+                    const next = [...videos];
+                    next[i] = { ...next[i], url: e.target.value };
+                    setVideos(next);
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=... 或 bilibili 视频链接"
+                />
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setVideos(videos.filter((_, j) => j !== i))}
+                >
+                  删除
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="skill-cloud" style={{ marginTop: "0.8rem" }}>
           {HOURS.map((h) => (
             <button
@@ -285,14 +449,33 @@ export function DashboardClient() {
             {me.profilePublic ? "✓ 主页公开" : "主页未公开"}
           </button>
         </div>
-        <button
-          type="button"
-          className="btn gold"
-          style={{ marginTop: "0.8rem" }}
-          onClick={() => saveProfile({ headline, bio, city })}
-        >
-          保存档案
-        </button>
+        <div className="save-profile-row">
+          <button
+            type="button"
+            className="btn gold"
+            disabled={saving}
+            onClick={() =>
+              saveProfile({
+                headline,
+                bio,
+                aboutLong: aboutLong || null,
+                city,
+                socials: socials.filter((s) => s.url.trim()),
+                videos: videos.filter((v) => v.url.trim()),
+              })
+            }
+          >
+            {saving ? "保存中…" : "保存档案"}
+          </button>
+          {msg && (
+            <p
+              className={`toast-inline toast-beside ${msgTone === "err" ? "toast-err" : ""}`}
+              role="status"
+            >
+              {msg}
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="panel">

@@ -3,12 +3,23 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatUsdCents } from "@/lib/matching";
+import {
+  platformLabel,
+  toEmbedUrl,
+  type SocialLink,
+  type VideoLink,
+} from "@/lib/profile-media";
+import { GithubProfileEmbed } from "@/components/GithubProfileEmbed";
+import { extractGithubUsername } from "@/lib/github-embed";
 
 type Profile = {
   id: string;
   name: string | null;
   headline: string | null;
   bio: string | null;
+  aboutLong: string | null;
+  socials: SocialLink[];
+  videos: VideoLink[];
   skills: string[];
   goal: string;
   availableHours: string;
@@ -38,6 +49,13 @@ const HOURS: Record<string, string> = {
   flexible: "时间灵活",
 };
 
+function socialHref(s: SocialLink) {
+  if (s.platform === "email" && s.url.includes("@") && !s.url.startsWith("http")) {
+    return `mailto:${s.url}`;
+  }
+  return s.url;
+}
+
 export function PublicProfile({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
@@ -64,6 +82,12 @@ export function PublicProfile({ userId }: { userId: string }) {
   }
   if (!profile) return <div className="panel empty">加载主页…</div>;
 
+  const socials = profile.socials || [];
+  const videos = profile.videos || [];
+  const githubLink =
+    socials.find((s) => s.platform === "github" && extractGithubUsername(s.url)) ||
+    socials.find((s) => extractGithubUsername(s.url));
+
   return (
     <div className="profile-page">
       <section className="panel profile-hero">
@@ -81,6 +105,21 @@ export function PublicProfile({ userId }: { userId: string }) {
               </span>
             ))}
           </div>
+          {socials.length > 0 && (
+            <div className="social-row" style={{ marginTop: "1rem" }}>
+              {socials.map((s, i) => (
+                <a
+                  key={`${s.platform}-${i}`}
+                  className="social-chip"
+                  href={socialHref(s)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {s.label || platformLabel(s.platform)}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div className="profile-stats">
           <div className="stat">
@@ -101,6 +140,54 @@ export function PublicProfile({ userId }: { userId: string }) {
           </p>
         </div>
       </section>
+
+      {githubLink && <GithubProfileEmbed githubUrl={githubLink.url} />}
+
+      {profile.aboutLong && (
+        <section className="panel">
+          <h2>完整介绍</h2>
+          <div className="about-long">{profile.aboutLong}</div>
+        </section>
+      )}
+
+      {videos.length > 0 && (
+        <section className="panel">
+          <h2>自我介绍视频</h2>
+          <p className="hint">来自各平台的介绍 / Demo 视频</p>
+          <div className="video-grid">
+            {videos.map((v, i) => {
+              const embed = toEmbedUrl(v.url);
+              return (
+                <article key={`${v.url}-${i}`} className="video-card">
+                  {v.title && <h3>{v.title}</h3>}
+                  {embed ? (
+                    <div className="video-frame">
+                      <iframe
+                        src={embed.embedUrl}
+                        title={v.title || embed.platform}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  ) : (
+                    <a className="btn ghost" href={v.url} target="_blank" rel="noreferrer">
+                      打开视频链接 ↗
+                    </a>
+                  )}
+                  {!embed && <p className="muted tiny">暂不支持内嵌，请点链接观看</p>}
+                  {embed && (
+                    <a className="muted tiny video-source" href={v.url} target="_blank" rel="noreferrer">
+                      在 {embed.platform} 打开 ↗
+                    </a>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h2>最近在做 / 做过</h2>
