@@ -1,13 +1,23 @@
 import { prisma } from "../prisma";
 import { algoraSource } from "./algora";
+import { arbeitnowSource } from "./arbeitnow";
 import { githubSearchSource } from "./github-search";
+import { jobicySource } from "./jobicy";
 import { paidListSource } from "./paid-list";
+import { portalDirectorySource } from "./portal-directory";
+import { remoteOkSource } from "./remoteok";
+import { remotiveSource } from "./remotive";
 import type { SourceFetcher } from "./types";
 
 export const ALL_FETCHERS: SourceFetcher[] = [
   paidListSource,
   githubSearchSource,
   algoraSource,
+  remoteOkSource,
+  remotiveSource,
+  jobicySource,
+  arbeitnowSource,
+  portalDirectorySource,
 ];
 
 export async function ensureDefaultSources() {
@@ -24,6 +34,21 @@ export async function ensureDefaultSources() {
         name: f.name,
         description: f.description,
       },
+    });
+  }
+}
+
+/** 为单个用户补齐新建数据源开关（默认启用） */
+export async function ensureUserSources(userId: string) {
+  await ensureDefaultSources();
+  const sources = await prisma.bountySource.findMany({ select: { id: true } });
+  for (const source of sources) {
+    await prisma.userSource.upsert({
+      where: {
+        userId_sourceId: { userId, sourceId: source.id },
+      },
+      create: { userId, sourceId: source.id, enabled: true },
+      update: {},
     });
   }
 }

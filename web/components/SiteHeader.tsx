@@ -15,7 +15,7 @@ export function SiteHeader() {
       </Link>
       <nav className="topnav-links">
         <Link href="/" className={pathname === "/" ? "active" : ""}>
-          悬赏大厅
+          机会大厅
         </Link>
         <Link href="/match" className={pathname === "/match" ? "active" : ""}>
           智能匹配

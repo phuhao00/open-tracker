@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { syncAllEnabledSources, syncSource, ensureDefaultSources } from "@/lib/sources/sync";
+import { syncAllEnabledSources, syncSource, ensureDefaultSources, ensureUserSources } from "@/lib/sources/sync";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -10,6 +10,7 @@ export async function POST(req: Request) {
 
   try {
     await ensureDefaultSources();
+    await ensureUserSources(session.user.id);
     const body = await req.json().catch(() => ({}));
     const key = typeof body.key === "string" ? body.key : null;
     if (key) {

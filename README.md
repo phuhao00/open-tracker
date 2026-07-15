@@ -1,128 +1,167 @@
 # OpenTacker
 
-付费开源接单助手：帮你从 [paid-open-source-projects](https://github.com/kunovsky/paid-open-source-projects) 里，按技能匹配适合自己的 bounty 项目，看清「项目做什么、怎么结算、怎么接单」，并一键跳转认领任务。
+全球灵活就业与招聘聚合平台 —— 发现开源悬赏、远程/兼职岗位、招聘门户与公司官网入口；按技能匹配、认领协作、沉淀履历与收益。
 
-包含两部分：
+A global flexible-work and recruiting aggregation platform — discover OSS bounties, remote/part-time openings, job-board portals and company career pages; match by skills, claim collaboratively, and build your public work profile.
 
-- **Python 追踪器**：定期抓取项目进展、奖金 Issue、新功能 / 改进 / 优化需求，生成报告与 JSON 快照
-- **Next.js 选型界面**：目标选择 → 技能匹配 → 结算说明 → 去接任务的引导式交互
+---
 
-## 能做什么
+## About / 关于
 
-1. **拉取付费项目列表** — 解析上游 README 表格（名称、技术栈、报酬、入门链接）
-2. **抓取项目进展** — GitHub stars、open issues、最近 Release、最近更新的 Issue
-3. **识别赚钱机会** — 自动分类：奖金悬赏 / 新功能 / 改进 / 优化 / Bug / 新手友好
-4. **技能与目标匹配** — 按技术栈、结算清晰度、练手/冲大额等目标筛选项目
-5. **结算说明** — 展示报酬模式、金额、付款时机、平台与认领步骤
-6. **一键去接任务** — 从推荐任务直达 GitHub Issue / bounty 页
-7. **增量对比** — 对比上次快照，标出新增机会
-8. **定期运行** — 本地 cron 调度，或用 GitHub Actions 每天自动跑
+### 中文
 
-## 快速开始
+OpenTacker（开源追踪 · 机会大厅）面向**灵活就业者、独立开发者与兼职贡献者**，把分散在全网的赚钱机会聚合到同一个产品里：
+
+- **开源悬赏**：跟踪付费开源项目列表与 GitHub / Algora 等 bounty 机会  
+- **在招岗位**：接入 RemoteOK、Remotive、Jobicy、Arbeitnow 等开放数据源中的远程/兼职/合同岗  
+- **门户入口**：收录 BOSS、智联、LinkedIn、Indeed 及知名公司 careers 页，只做合规跳转（不爬岗位正文）  
+- **分类交互**：按大类 → 地区 → 用工形态 → 数据源分层筛选，目标是成为最好用的招聘聚合体验  
+- **协作防撞车**：认领任务、社区动态、公开主页与自报收益账本，让灵活就业可积累信誉  
+
+上游灵感来自 [paid-open-source-projects](https://github.com/kunovsky/paid-open-source-projects)。产品包含 **Python 追踪器**（报告与快照）与 **Next.js Web**（机会大厅与协作网络）。
+
+### English
+
+OpenTacker is built for **flexible workers, indie developers, and part-time contributors**. It aggregates earning opportunities that are usually scattered across the internet:
+
+- **OSS bounties** — paid open-source lists plus GitHub / Algora bounty discovery  
+- **Open roles** — remote / part-time / contract jobs from open APIs (RemoteOK, Remotive, Jobicy, Arbeitnow)  
+- **Portal jumps** — curated links to major job boards and company careers pages (entry points only; no ToS-violating scraping of private listings)  
+- **Clear taxonomy UX** — browse by category → region → work type → source, aiming for best-in-class job aggregation interaction  
+- **Collaboration** — claim tasks to avoid collisions, community feed, public profiles, and a self-reported earnings ledger  
+
+Inspired by [paid-open-source-projects](https://github.com/kunovsky/paid-open-source-projects). The repo ships a **Python tracker** (reports & snapshots) and a **Next.js web app** (opportunity hall & collaboration network).
+
+---
+
+## Features / 能力一览
+
+| Area | 中文 | English |
+|------|------|---------|
+| Discovery | 多源抓取悬赏、岗位与门户入口 | Multi-source discovery for bounties, jobs, portals |
+| Taxonomy | 大类 / 地区 / 用工形态 / 数据源筛选 | Bucket / region / work-type / source filters |
+| Matching | 按技能与目标个性化排序 | Skill- and goal-based ranking |
+| Collaboration | 认领防撞车、社区动态 | Claims + community activity feed |
+| Profile | 公开主页、信誉与收益账本 | Public profile, reputation, earnings ledger |
+| Tracker CLI | Markdown / JSON 报告与定时跑 | Markdown/JSON reports and scheduled runs |
+
+---
+
+## Quick start / 快速开始
+
+### Web（推荐主产品）
 
 ```bash
-# 1. 创建虚拟环境并安装
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-# source .venv/bin/activate
-
-pip install -e ".[dev]"
-
-# 2. （推荐）配置 GitHub Token，提高 API 限额
-copy .env.example .env
-# 编辑 .env，填入 GITHUB_TOKEN=ghp_xxx
-
-# 3. 按你的技能改 config.yaml 里的 skills
-
-# 4. 跑一次
-opentacker run
-
-# 查看报告
-opentacker show
-# 或打开 reports/latest.md
+cd web
+cp .env.example .env   # set AUTH_SECRET; optional GITHUB_TOKEN
+npm install
+npx prisma db push
+npm run dev            # http://localhost:6700
 ```
 
-### 常用命令
+同步岗位与门户（可选）：
 
-| 命令 | 说明 |
-|------|------|
-| `opentacker list` | 只解析列表，不抓 Issue |
-| `opentacker run` | 全量追踪并生成报告 |
-| `opentacker run --all` | 忽略 skills，追踪全部项目 |
-| `opentacker show` | 打印最新 Markdown 报告 |
-| `opentacker schedule` | 按 `config.yaml` 的 cron 定时跑 |
+```bash
+cd web
+npx tsx scripts/sync-jobs.ts      # remote job boards
+npx tsx scripts/sync-portals.ts   # portal + company career entries
+# or sync everything while logged in via「同步全网机会」
+```
 
-## 配置说明
+### Python tracker（付费开源报告）
 
-编辑根目录 `config.yaml`：
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
 
-- `skills` — 你的技术栈，用于过滤项目
-- `github.bounty_labels` / `opportunity_labels` / `opportunity_keywords` — 机会识别规则
-- `schedule.cron` — 本地定时表达式（默认每天 9:00）
-- `output.reports_dir` / `history_dir` — 报告与历史快照目录
+pip install -e ".[dev]"
+copy .env.example .env    # or cp; set GITHUB_TOKEN
+# edit config.yaml → skills
 
-## 报告读法
+opentacker run
+opentacker show           # or open reports/latest.md
+```
 
-生成后看 `reports/latest.md`：
+| Command | Description |
+|---------|-------------|
+| `opentacker list` | Parse paid list only |
+| `opentacker run` | Full track + report |
+| `opentacker run --all` | Ignore skills filter |
+| `opentacker show` | Print latest Markdown report |
+| `opentacker schedule` | Local cron from `config.yaml` |
 
-1. **今日优先机会** — 按得分排序，优先点开「奖金悬赏」
-2. **新功能 / 改进 / 优化** — 适合中长期贡献、建立维护者信任
-3. **各项目进展摘要** — 最近推送、Release、高分 Issue
-4. 对比 `data/history/` 下历史 JSON，发现**新增**需求
+---
 
-## GitHub Actions 定时跑（可选）
+## Web product map / 前端功能
 
-仓库已带 `.github/workflows/daily-track.yml`。推送到 GitHub 后：
+浏览器打开 **http://localhost:6700**：
 
-1. 在仓库 Settings → Secrets 添加 `GITHUB_TOKEN`（Actions 自带 token 通常也够用）
-2. 每天 UTC 01:00（北京时间 09:00）自动生成报告
-3. 报告会 commit 到 `reports/latest.md`（可按需改成只上传 Artifact）
+- **机会大厅** — 分层筛选；数据源包括付费列表 / GitHub / Algora / RemoteOK / Remotive / Jobicy / Arbeitnow / 门户目录  
+- **智能匹配** — 技能与结算画像选型（基于 tracker 快照）  
+- **协作社区** — 进行中认领、动态流、伙伴墙  
+- **工作台** — 档案、认领状态、收益账本、数据源开关、短名单  
+- **公开主页** `/u/[id]` — 信誉、技能与履历  
 
-## 项目结构
+环境变量见 [`web/.env.example`](web/.env.example)：`DATABASE_URL`、`AUTH_SECRET`、`NEXTAUTH_URL`（默认 `http://localhost:6700`）、可选 `GITHUB_TOKEN`。
+
+---
+
+## Configuration / 配置
+
+### Tracker — `config.yaml`
+
+- `skills` — tech stack filter  
+- `github.bounty_labels` / `opportunity_*` — opportunity heuristics  
+- `schedule.cron` — local schedule (default daily 09:00)  
+- `output.*` — report & history directories  
+
+### Web sources — `web/lib/sources/`
+
+New fetchers register in `ALL_FETCHERS` inside [`web/lib/sources/sync.ts`](web/lib/sources/sync.ts). Portal seeds live in [`web/lib/sources/portal-directory.ts`](web/lib/sources/portal-directory.ts). Taxonomy for filters: [`web/lib/taxonomy.ts`](web/lib/taxonomy.ts).
+
+---
+
+## Compliance note / 合规说明
+
+| Allowed | Not in default product |
+|---------|-------------------------|
+| Official / public APIs & RSS | Bulk scraping of BOSS / 智联 / LinkedIn closed listings |
+| Curated career / board **entry URLs** | Storing full proprietary job HTML without license |
+
+国内主流招聘站职位正文需在源站登录查看；本仓库以**跳转入口 + 开放数据**为主路径。
+
+---
+
+## Project layout / 目录
 
 ```
 opentacker/
-├── config.yaml              # 主配置
-├── src/opentacker/
-│   ├── list_parser.py       # 解析付费项目列表
-│   ├── github_client.py     # GitHub API
-│   ├── analyzer.py          # 机会分类与打分
-│   ├── reporter.py          # Markdown / JSON 报告
-│   ├── tracker.py           # 一次完整流水线
-│   └── cli.py               # 命令行入口
-├── reports/                 # 生成的报告
-├── data/history/            # 历史快照（用于增量对比）
+├── config.yaml                 # tracker config
+├── src/opentacker/             # Python CLI pipeline
+├── reports/                    # Markdown reports
+├── data/history/               # JSON snapshots
+├── web/                        # Next.js app (port 6700)
+│   ├── app/                    # routes & APIs
+│   ├── components/             # hall, community, dashboard…
+│   ├── lib/sources/            # multi-source fetchers
+│   ├── lib/taxonomy.ts         # classification system
+│   ├── prisma/                 # SQLite schema
+│   └── scripts/                # sync-jobs, sync-portals…
 └── tests/
 ```
 
-## 赚钱建议（务实）
+---
 
-- 先从 **Expensify / Trigger.dev / tscircuit** 等有明确 bounty 流程的项目入手
-- 读每个项目的 Getting Started，确认如何 **claim** 奖金（Algora、Issue 评论、申请表等）
-- 小额 / good first issue 先交 1–2 个 PR，再冲大额 bounty
-- 把 `skills` 收窄到你真正能交付的栈，报告会更有用
+## Practical tips / 实务建议
 
-## 图表网站（Next.js）
+**中文**  
+先完善技能档案 → 同步机会 → 用大类筛选「在招岗位 / 门户 / 悬赏」→ 认领或跳转投递 → 收款后记入账本。开源 bounty 建议从流程清晰的项目（如 Algora 生态）练手。
 
-```bash
-# 先确保有最新数据（可选，智能匹配页用）
-opentacker run --all
+**English**  
+Complete your skill profile → sync sources → filter by opening / portal / bounty → claim or jump to apply → log earnings. For OSS bounties, start with projects that have a clear claim & payout flow.
 
-# 启动前端
-cd web
-cp .env.example .env   # 首次：配置 AUTH_SECRET / 可选 GITHUB_TOKEN
-npm install
-npx prisma db push
-npm run dev
-```
-
-浏览器打开 http://localhost:3000 ：
-
-- **悬赏大厅**：多源自动抓取（付费列表 / GitHub / Algora），登录后可同步与收藏
-- **智能匹配**：按技能与结算画像选型
-- **注册/登录 + 我的工作台**：管理技能、目标、数据源开关、短名单
+---
 
 ## License
 

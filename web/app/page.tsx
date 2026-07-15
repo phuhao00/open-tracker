@@ -11,11 +11,10 @@ export default function HomePage() {
           Open<span>Tacker</span>
         </h1>
         <p className="lede">
-          凝聚灵活就业者的力量：自动发现开源悬赏，按技能匹配，认领防撞车，公开履历与收益账本，
-          让每个人都能更稳地靠贡献赚钱。
+          凝聚灵活就业者的力量：用清晰分类发现全球岗位、门户入口与开源悬赏，按技能匹配，认领防撞车，公开履历与收益账本。
         </p>
         <div className="flow-steps">
-          <span>发现悬赏</span>
+          <span>发现机会</span>
           <span className="arrow">→</span>
           <span>匹配技能</span>
           <span className="arrow">→</span>
@@ -36,7 +35,9 @@ export default function HomePage() {
       <section className="value-grid">
         <div className="panel value-card">
           <h3>多源发现</h3>
-          <p>付费列表、GitHub、Algora 自动聚合，少刷网页多接单。</p>
+          <p>
+            开源悬赏 + RemoteOK / Remotive / Jobicy / Arbeitnow，以及各大招聘门户与公司官网招聘入口。
+          </p>
         </div>
         <div className="panel value-card">
           <h3>认领防撞车</h3>
@@ -50,7 +51,8 @@ export default function HomePage() {
 
       <BountyHall />
       <p className="footer">
-        最佳实践：先完善技能与档案 → 同步悬赏 → 认领一单并更新状态 → 收款后记入账本。
+        最佳实践：完善技能 → 同步机会 → 门户入口跳转投递，或优先选兼职/悬赏并认领。
+        门户类仅提供跳转链接，不爬取岗位正文；国内大平台职位详情需登录源站查看。
       </p>
     </main>
   );

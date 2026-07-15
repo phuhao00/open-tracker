@@ -18,9 +18,9 @@ export function scoreTaskForUser(input: {
   kind: string;
   activeClaims?: number;
 }): { score: number; reasons: string[] } {
-  const skills = input.skills.map((s) => s.toLowerCase());
+  const skills = input.skills.map((s) => String(s).toLowerCase());
   const tags = [
-    ...input.techTags.map((t) => t.toLowerCase()),
+    ...input.techTags.map((t) => String(t).toLowerCase()),
     input.title.toLowerCase(),
     (input.summary || "").toLowerCase(),
   ].join(" ");
@@ -38,6 +38,18 @@ export function scoreTaskForUser(input: {
     score += 12;
     reasons.push("明确悬赏类");
   }
+  if (input.kind === "parttime") {
+    score += 14;
+    reasons.push("兼职/灵活就业岗");
+  }
+  if (input.kind === "job") {
+    score += 8;
+    reasons.push("远程/灵活岗位");
+  }
+  if (input.kind === "portal") {
+    score += 10;
+    reasons.push("招聘门户/公司入口");
+  }
   if (input.amountText || (input.amountMax && input.amountMax > 0)) {
     score += 10;
     reasons.push("有金额信息");
@@ -51,7 +63,7 @@ export function scoreTaskForUser(input: {
     score += 12;
     reasons.push("适合练手金额");
   }
-  if (input.goal === "quick" && input.kind === "bounty") {
+  if (input.goal === "quick" && (input.kind === "bounty" || input.kind === "parttime")) {
     score += 8;
   }
   if (input.goal === "clear" && input.amountText) {

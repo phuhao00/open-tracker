@@ -1,9 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PaginationBar } from "@/components/PaginationBar";
+import { KIND_LABEL, SOURCE_LABEL } from "@/lib/source-labels";
+import {
+  BUCKET_META,
+  CHANNEL_META,
+  REGION_META,
+  WORK_TYPE_META,
+  type OpportunityBucket,
+  type PortalChannel,
+  type RegionCode,
+  type WorkType,
+} from "@/lib/taxonomy";
+
+type Taxonomy = {
+  bucket: OpportunityBucket;
+  region: RegionCode;
+  workType: WorkType;
+  channel: PortalChannel;
+};
 
 type BountyItem = {
   id: string;
@@ -18,17 +36,14 @@ type BountyItem = {
   summary: string | null;
   matchScore: number | null;
   matchReasons: string[];
+  taxonomy: Taxonomy;
+  taxonomyLabel: { bucket: string; region: string; work: string };
   activeClaims: Array<{ id: string; status: string; user: { id: string; name: string | null } }>;
   source: { key: string; name: string };
 };
 
+type CountFacet = { key: string; count: number };
 type SourceFacet = { key: string; name: string; count: number };
-
-const SOURCE_LABEL: Record<string, string> = {
-  paid_list: "付费列表",
-  github_search: "GitHub",
-  algora: "Algora",
-};
 
 const PAGE_SIZE = 10;
 
@@ -36,10 +51,20 @@ export function BountyHall() {
   const { status } = useSession();
   const listRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<BountyItem[]>([]);
-  const [facets, setFacets] = useState<SourceFacet[]>([]);
+  const [facets, setFacets] = useState<{
+    sources: SourceFacet[];
+    buckets: CountFacet[];
+    regions: CountFacet[];
+    workTypes: CountFacet[];
+    channels: CountFacet[];
+  }>({ sources: [], buckets: [], regions: [], workTypes: [], channels: [] });
   const [personalized, setPersonalized] = useState(false);
   const [q, setQ] = useState("");
   const [source, setSource] = useState("");
+  const [bucket, setBucket] = useState<"" | OpportunityBucket>("");
+  const [region, setRegion] = useState<"" | RegionCode>("");
+  const [workType, setWorkType] = useState<"" | WorkType>("");
+  const [channel, setChannel] = useState<PortalChannel>("");
   const [sort, setSort] = useState("match");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -54,31 +79,51 @@ export function BountyHall() {
     async (opts?: {
       q?: string;
       source?: string;
+      bucket?: "" | OpportunityBucket;
+      region?: "" | RegionCode;
+      workType?: "" | WorkType;
+      channel?: PortalChannel;
       sort?: string;
       page?: number;
       scroll?: boolean;
     }) => {
-      const nextQ = opts?.q ?? q;
-      const nextSource = opts?.source ?? source;
-      const nextSort = opts?.sort ?? sort;
-      const nextPage = opts?.page ?? page;
+      const next = {
+        q: opts?.q ?? q,
+        source: opts?.source ?? source,
+        bucket: opts?.bucket ?? bucket,
+        region: opts?.region ?? region,
+        workType: opts?.workType ?? workType,
+        channel: opts?.channel ?? channel,
+        sort: opts?.sort ?? sort,
+        page: opts?.page ?? page,
+      };
 
       setLoading(true);
       const params = new URLSearchParams();
-      if (nextQ) params.set("q", nextQ);
-      if (nextSource) params.set("source", nextSource);
-      params.set("sort", nextSort);
-      params.set("page", String(nextPage));
+      if (next.q) params.set("q", next.q);
+      if (next.source) params.set("source", next.source);
+      if (next.bucket) params.set("bucket", next.bucket);
+      if (next.region) params.set("region", next.region);
+      if (next.workType) params.set("workType", next.workType);
+      if (next.channel) params.set("channel", next.channel);
+      params.set("sort", next.sort);
+      params.set("page", String(next.page));
       params.set("limit", String(PAGE_SIZE));
 
       const res = await fetch(`/api/bounties?${params.toString()}`);
       const data = await res.json();
       setItems(data.items || []);
-      setFacets(data.facets?.sources || []);
+      setFacets({
+        sources: data.facets?.sources || [],
+        buckets: data.facets?.buckets || [],
+        regions: data.facets?.regions || [],
+        workTypes: data.facets?.workTypes || [],
+        channels: data.facets?.channels || [],
+      });
       setPersonalized(Boolean(data.personalized));
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
-      setPage(data.page || nextPage);
+      setPage(data.page || next.page);
       setFadeKey((k) => k + 1);
       setLoading(false);
 
@@ -86,7 +131,7 @@ export function BountyHall() {
         listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [q, source, sort, page],
+    [q, source, bucket, region, workType, channel, sort, page],
   );
 
   useEffect(() => {
@@ -116,11 +161,11 @@ export function BountyHall() {
 
   async function syncAll() {
     if (status !== "authenticated") {
-      setMessage("登录后才能手动同步网上悬赏");
+      setMessage("登录后才能手动同步全网机会");
       return;
     }
     setSyncing(true);
-    setMessage("正在从多个数据源抓取…");
+    setMessage("正在同步悬赏、岗位与门户入口…");
     const res = await fetch("/api/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -144,7 +189,7 @@ export function BountyHall() {
 
   async function saveTask(taskId: string) {
     if (status !== "authenticated") {
-      setMessage("登录后才能收藏任务");
+      setMessage("登录后才能收藏");
       return;
     }
     setBusyId(taskId);
@@ -159,7 +204,7 @@ export function BountyHall() {
 
   async function claimTask(taskId: string) {
     if (status !== "authenticated") {
-      setMessage("登录后才能认领，避免和伙伴撞车");
+      setMessage("登录后才能认领");
       return;
     }
     setBusyId(taskId);
@@ -174,59 +219,120 @@ export function BountyHall() {
       setMessage(data.error || "认领失败");
       return;
     }
-    setMessage(data.warning || "已认领：社区伙伴能看到你在做这单");
+    setMessage(data.warning || "已认领");
     await load();
   }
 
-  function changePage(next: number) {
-    setPage(next);
-    load({ page: next, scroll: true });
+  function resetFilters() {
+    setSource("");
+    setBucket("");
+    setRegion("");
+    setWorkType("");
+    setChannel("");
+    setQ("");
+    setPage(1);
+    load({
+      q: "",
+      source: "",
+      bucket: "",
+      region: "",
+      workType: "",
+      channel: "",
+      page: 1,
+    });
   }
+
+  const activeChips = useMemo(() => {
+    const chips: Array<{ key: string; label: string; clear: () => void }> = [];
+    if (bucket) {
+      chips.push({
+        key: "bucket",
+        label: BUCKET_META.find((b) => b.id === bucket)?.label || bucket,
+        clear: () => {
+          setBucket("");
+          setPage(1);
+          load({ bucket: "", page: 1 });
+        },
+      });
+    }
+    if (region) {
+      chips.push({
+        key: "region",
+        label: REGION_META.find((r) => r.id === region)?.label || region,
+        clear: () => {
+          setRegion("");
+          setPage(1);
+          load({ region: "", page: 1 });
+        },
+      });
+    }
+    if (workType) {
+      chips.push({
+        key: "workType",
+        label: WORK_TYPE_META.find((w) => w.id === workType)?.label || workType,
+        clear: () => {
+          setWorkType("");
+          setPage(1);
+          load({ workType: "", page: 1 });
+        },
+      });
+    }
+    if (channel) {
+      chips.push({
+        key: "channel",
+        label: CHANNEL_META.find((c) => c.id === channel)?.label || channel,
+        clear: () => {
+          setChannel("");
+          setPage(1);
+          load({ channel: "", page: 1 });
+        },
+      });
+    }
+    if (source) {
+      chips.push({
+        key: "source",
+        label: SOURCE_LABEL[source] || source,
+        clear: () => {
+          setSource("");
+          setPage(1);
+          load({ source: "", page: 1 });
+        },
+      });
+    }
+    if (q) {
+      chips.push({
+        key: "q",
+        label: `搜索「${q}」`,
+        clear: () => {
+          setQ("");
+          setPage(1);
+          load({ q: "", page: 1 });
+        },
+      });
+    }
+    return chips;
+  }, [bucket, region, workType, channel, source, q, load]);
+
+  const countMap = (rows: CountFacet[]) =>
+    Object.fromEntries(rows.map((r) => [r.key, r.count]));
+
+  const bucketCounts = countMap(facets.buckets);
+  const regionCounts = countMap(facets.regions);
+  const workCounts = countMap(facets.workTypes);
+  const channelCounts = countMap(facets.channels);
 
   return (
     <section className="hall">
       <div className="panel hall-hero">
         <div>
-          <h2>悬赏大厅</h2>
+          <h2>全球机会大厅</h2>
           <p className="hint">
-            每页精选 {PAGE_SIZE} 条，按你的节奏浏览。登录后按技能排序，认领后伙伴可见，减少撞车。
+            按「大类 → 地区 → 用工形态 → 数据源」分层筛选。门户入口只做跳转；岗位与悬赏可认领协作。
           </p>
-          <div className="source-pills" role="tablist" aria-label="数据源筛选">
-            {facets.length === 0 && <span className="mini-tag">暂无数据，先点同步</span>}
-            <button
-              type="button"
-              className={`skill-chip ${source === "" ? "active" : ""}`}
-              onClick={() => {
-                setSource("");
-                setPage(1);
-                load({ source: "", page: 1 });
-              }}
-            >
-              全部 · {facets.reduce((s, f) => s + f.count, 0) || total}
-            </button>
-            {facets.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                className={`skill-chip ${source === f.key ? "active" : ""}`}
-                onClick={() => {
-                  const next = source === f.key ? "" : f.key;
-                  setSource(next);
-                  setPage(1);
-                  load({ source: next, page: 1 });
-                }}
-              >
-                {SOURCE_LABEL[f.key] || f.name} · {f.count}
-              </button>
-            ))}
-          </div>
-          {personalized && (
-            <p className="toast-inline">已按你的技能与目标做个性化排序</p>
-          )}
         </div>
         <div className="hall-actions">
           <button type="button" className="btn gold" onClick={syncAll} disabled={syncing}>
-            {syncing ? "同步中…" : "立即抓取网上悬赏"}
+            {syncing ? "同步中…" : "同步全网机会"}
           </button>
           {status !== "authenticated" ? (
             <Link href="/register" className="btn primary">
@@ -237,145 +343,320 @@ export function BountyHall() {
               看社区动态
             </Link>
           )}
-          <Link href="/match" className="btn ghost">
-            去智能匹配
-          </Link>
         </div>
       </div>
 
-      <div className="toolbar compact panel sticky-toolbar" style={{ marginTop: "1rem" }}>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索标题 / 项目 / 金额…"
-          aria-label="搜索悬赏"
-        />
-        <select
-          value={sort}
-          aria-label="排序方式"
-          onChange={(e) => {
-            const next = e.target.value;
-            setSort(next);
-            setPage(1);
-            load({ sort: next, page: 1 });
-          }}
-        >
-          <option value="match">最适合我</option>
-          <option value="amount">金额优先</option>
-          <option value="newest">最新抓取</option>
-        </select>
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={() => {
-            setPage(1);
-            load({ page: 1 });
-          }}
-        >
-          刷新
-        </button>
-      </div>
-
-      {message && (
-        <p className="toast-inline toast-live" role="status">
-          {message}
-        </p>
-      )}
-
-      <div ref={listRef} className="list-anchor">
-        <div key={fadeKey} className={`task-list list-stage ${loading ? "is-loading" : ""}`}>
-          {loading && items.length === 0 && (
-            <div className="panel empty soft">
-              <div className="skeleton-line" />
-              <div className="skeleton-line short" />
-            </div>
-          )}
-          {!loading && items.length === 0 && (
-            <div className="panel human-empty">
-              <strong>这一页没有结果</strong>
-              <p>换个关键词，或点「立即抓取网上悬赏」拉取最新机会。</p>
-            </div>
-          )}
-          {items.map((item, idx) => (
-            <article
-              key={item.id}
-              className="task-card task-card-interactive"
-              style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}
+      <div className="bucket-rail" role="tablist" aria-label="机会大类">
+        {BUCKET_META.map((b) => {
+          const count =
+            b.id === ""
+              ? facets.buckets.reduce((s, x) => s + x.count, 0)
+              : bucketCounts[b.id] || 0;
+          return (
+            <button
+              key={b.id || "all"}
+              type="button"
+              role="tab"
+              aria-selected={bucket === b.id}
+              className={`bucket-card ${bucket === b.id ? "active" : ""}`}
+              onClick={() => {
+                setBucket(b.id);
+                // 切到非门户时清掉 channel
+                const nextChannel = b.id && b.id !== "portal" ? "" : channel;
+                setChannel(nextChannel);
+                setPage(1);
+                load({ bucket: b.id, channel: nextChannel, page: 1, scroll: true });
+              }}
             >
-              <div className="task-main">
-                <div className="task-meta">
-                  <span className="mini-tag">
-                    {SOURCE_LABEL[item.source.key] || item.source.name}
-                  </span>
-                  <span className="badge badge-accent">{item.kind}</span>
-                  {item.amountText && (
-                    <span className="gold-text amount">{item.amountText}</span>
-                  )}
-                  {item.matchScore != null && (
-                    <span className="score">适合度 {item.matchScore}</span>
-                  )}
-                </div>
-                <h4>{item.title}</h4>
-                <p className="muted">
-                  {item.projectName}
-                  {item.repo ? ` · ${item.repo}` : ""}
-                  {item.summary ? ` · ${item.summary.slice(0, 90)}` : ""}
-                </p>
-                {item.matchReasons?.length > 0 && (
-                  <p className="why-line">{item.matchReasons.join(" · ")}</p>
-                )}
-                {item.activeClaims?.length > 0 && (
-                  <p className="claim-hint">
-                    协作中：
-                    {item.activeClaims
-                      .map((c) => c.user.name || "伙伴")
-                      .slice(0, 3)
-                      .join("、")}
-                    {item.activeClaims.length > 3 ? " 等" : ""} 已认领
-                  </p>
-                )}
-                <div className="pick-tags">
-                  {item.techTags.slice(0, 6).map((t) => (
-                    <span key={t} className="mini-tag">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="detail-cta-stack">
-                <button
-                  type="button"
-                  className="btn gold claim"
-                  disabled={busyId === item.id}
-                  onClick={() => claimTask(item.id)}
-                >
-                  {busyId === item.id ? "处理中…" : "我来接这单"}
-                </button>
-                <a className="btn primary" href={item.url} target="_blank" rel="noreferrer">
-                  打开任务页 ↗
-                </a>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  disabled={busyId === item.id}
-                  onClick={() => saveTask(item.id)}
-                >
-                  ☆ 收藏
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+              <strong>{b.label}</strong>
+              <span className="bucket-hint">{b.hint}</span>
+              <span className="bucket-count">{count}</span>
+            </button>
+          );
+        })}
+      </div>
 
-        <PaginationBar
-          page={page}
-          totalPages={totalPages}
-          total={total}
-          pageSize={PAGE_SIZE}
-          onChange={changePage}
-          disabled={loading || syncing}
-          label="条悬赏"
-        />
+      <div className="hall-layout">
+        <aside className="panel filter-rail" aria-label="精细筛选">
+          <div className="filter-block">
+            <h3>地区</h3>
+            <div className="filter-stack">
+              {REGION_META.map((r) => (
+                <button
+                  key={r.id || "region-all"}
+                  type="button"
+                  className={`filter-option ${region === r.id ? "active" : ""}`}
+                  onClick={() => {
+                    setRegion(r.id);
+                    setPage(1);
+                    load({ region: r.id, page: 1 });
+                  }}
+                >
+                  <span>{r.label}</span>
+                  <em>{r.id ? regionCounts[r.id] || 0 : facets.regions.reduce((s, x) => s + x.count, 0)}</em>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-block">
+            <h3>用工形态</h3>
+            <div className="filter-stack">
+              {WORK_TYPE_META.map((w) => (
+                <button
+                  key={w.id || "work-all"}
+                  type="button"
+                  className={`filter-option ${workType === w.id ? "active" : ""}`}
+                  onClick={() => {
+                    setWorkType(w.id);
+                    setPage(1);
+                    load({ workType: w.id, page: 1 });
+                  }}
+                >
+                  <span>{w.label}</span>
+                  <em>{w.id ? workCounts[w.id] || 0 : facets.workTypes.reduce((s, x) => s + x.count, 0)}</em>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(bucket === "portal" || bucket === "") && (
+            <div className="filter-block">
+              <h3>入口类型</h3>
+              <div className="filter-stack">
+                {CHANNEL_META.map((c) => (
+                  <button
+                    key={c.id || "channel-all"}
+                    type="button"
+                    className={`filter-option ${channel === c.id ? "active" : ""}`}
+                    onClick={() => {
+                      setChannel(c.id);
+                      if (c.id) setBucket("portal");
+                      setPage(1);
+                      load({
+                        channel: c.id,
+                        bucket: c.id ? "portal" : bucket,
+                        page: 1,
+                      });
+                    }}
+                  >
+                    <span>{c.label}</span>
+                    <em>
+                      {c.id
+                        ? channelCounts[c.id] || 0
+                        : (channelCounts.board || 0) + (channelCounts.careers || 0)}
+                    </em>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="filter-block">
+            <h3>数据源</h3>
+            <div className="filter-stack">
+              <button
+                type="button"
+                className={`filter-option ${source === "" ? "active" : ""}`}
+                onClick={() => {
+                  setSource("");
+                  setPage(1);
+                  load({ source: "", page: 1 });
+                }}
+              >
+                <span>全部来源</span>
+                <em>{facets.sources.reduce((s, x) => s + x.count, 0)}</em>
+              </button>
+              {facets.sources.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  className={`filter-option ${source === f.key ? "active" : ""}`}
+                  onClick={() => {
+                    const next = source === f.key ? "" : f.key;
+                    setSource(next);
+                    setPage(1);
+                    load({ source: next, page: 1 });
+                  }}
+                >
+                  <span>{SOURCE_LABEL[f.key] || f.name}</span>
+                  <em>{f.count}</em>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button type="button" className="btn ghost reset-filters" onClick={resetFilters}>
+            清除全部筛选
+          </button>
+        </aside>
+
+        <div className="hall-main">
+          <div className="toolbar compact panel sticky-toolbar">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="搜索职位、公司、技能、门户…"
+              aria-label="搜索机会"
+            />
+            <select
+              value={sort}
+              aria-label="排序方式"
+              onChange={(e) => {
+                const next = e.target.value;
+                setSort(next);
+                setPage(1);
+                load({ sort: next, page: 1 });
+              }}
+            >
+              <option value="match">最适合我</option>
+              <option value="amount">薪酬/金额优先</option>
+              <option value="newest">最新收录</option>
+            </select>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => {
+                setPage(1);
+                load({ page: 1 });
+              }}
+            >
+              刷新
+            </button>
+          </div>
+
+          <div className="result-meta">
+            <p>
+              共 <strong>{total}</strong> 条
+              {personalized ? " · 已按你的技能排序" : ""}
+            </p>
+            {activeChips.length > 0 && (
+              <div className="active-chips">
+                {activeChips.map((c) => (
+                  <button key={c.key} type="button" className="chip" onClick={c.clear}>
+                    {c.label} ×
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {message && (
+            <p className="toast-inline toast-live" role="status">
+              {message}
+            </p>
+          )}
+
+          <div ref={listRef} className="list-anchor">
+            <div key={fadeKey} className={`task-list list-stage ${loading ? "is-loading" : ""}`}>
+              {loading && items.length === 0 && (
+                <div className="panel empty soft">
+                  <div className="skeleton-line" />
+                  <div className="skeleton-line short" />
+                </div>
+              )}
+              {!loading && items.length === 0 && (
+                <div className="panel human-empty">
+                  <strong>没有符合当前分类的结果</strong>
+                  <p>试试切换大类，或清除侧栏筛选项。也可同步最新机会后再看。</p>
+                  <button type="button" className="btn primary" onClick={resetFilters}>
+                    查看全部机会
+                  </button>
+                </div>
+              )}
+              {items.map((item, idx) => (
+                <article
+                  key={item.id}
+                  className="task-card task-card-interactive"
+                  style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}
+                >
+                  <div className="task-main">
+                    <div className="task-meta">
+                      <span className="mini-tag">
+                        {SOURCE_LABEL[item.source.key] || item.source.name}
+                      </span>
+                      <span className="badge badge-accent">
+                        {item.taxonomyLabel?.bucket || KIND_LABEL[item.kind] || item.kind}
+                      </span>
+                      <span className="badge badge-success">{item.taxonomyLabel?.region}</span>
+                      {item.taxonomyLabel?.work && item.taxonomy.workType !== "other" && (
+                        <span className="mini-tag">{item.taxonomyLabel.work}</span>
+                      )}
+                      {item.amountText && (
+                        <span className="gold-text amount">{item.amountText}</span>
+                      )}
+                      {item.matchScore != null && (
+                        <span className="score">适合度 {item.matchScore}</span>
+                      )}
+                    </div>
+                    <h4>{item.title}</h4>
+                    <p className="muted">
+                      {item.projectName}
+                      {item.repo ? ` · ${item.repo}` : ""}
+                      {item.summary ? ` · ${item.summary.slice(0, 90)}` : ""}
+                    </p>
+                    {item.matchReasons?.length > 0 && (
+                      <p className="why-line">{item.matchReasons.join(" · ")}</p>
+                    )}
+                    {item.activeClaims?.length > 0 && (
+                      <p className="claim-hint">
+                        协作中：
+                        {item.activeClaims
+                          .map((c) => c.user.name || "伙伴")
+                          .slice(0, 3)
+                          .join("、")}
+                        {item.activeClaims.length > 3 ? " 等" : ""} 已认领
+                      </p>
+                    )}
+                    <div className="pick-tags">
+                      {item.techTags.slice(0, 6).map((t) => (
+                        <span key={t} className="mini-tag">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="detail-cta-stack">
+                    {item.kind !== "portal" && (
+                      <button
+                        type="button"
+                        className="btn gold claim"
+                        disabled={busyId === item.id}
+                        onClick={() => claimTask(item.id)}
+                      >
+                        {busyId === item.id ? "处理中…" : "我来接这单"}
+                      </button>
+                    )}
+                    <a className="btn primary" href={item.url} target="_blank" rel="noreferrer">
+                      {item.kind === "portal" ? "进入招聘入口 ↗" : "打开详情 ↗"}
+                    </a>
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      disabled={busyId === item.id}
+                      onClick={() => saveTask(item.id)}
+                    >
+                      ☆ 收藏
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <PaginationBar
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onChange={(next) => {
+                setPage(next);
+                load({ page: next, scroll: true });
+              }}
+              disabled={loading || syncing}
+              label="条机会"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );
