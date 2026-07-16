@@ -136,7 +136,9 @@ model BountyTask {
   @@index([status, amountMax])
   @@index([projectName])
   @@index([moderationStatus, expiresAt])
+  @@index([status, moderationStatus, fetchedAt])
   @@index([publisherId])
+  @@index([sourceId, status, moderationStatus])
 }
 
 model OpportunityReport {

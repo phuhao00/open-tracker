@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 6700",
+    "dev": "next dev --turbopack --port 6700",
+    "dev:webpack": "next dev --port 6700",
     "build": "prisma generate && next build",
     "start": "next start --port 6700",
     "lint": "next lint",

@@ -1,12 +1,29 @@
 import { BountyHall } from "@/components/BountyHall";
 import { auth } from "@/lib/auth";
+import { listBounties } from "@/lib/bounties-list";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+const guestHall = unstable_cache(
+  () => listBounties({ page: 1, pageSize: 10, sort: "match", userId: null }),
+  ["hall-guest-home"],
+  { revalidate: 30 },
+);
+
 export default async function HomePage() {
   const session = await auth();
   const loggedIn = Boolean(session?.user);
+
+  const initialData = loggedIn
+    ? await listBounties({
+        page: 1,
+        pageSize: 10,
+        sort: "match",
+        userId: session!.user!.id,
+      })
+    : await guestHall();
 
   return (
     <main>
@@ -41,7 +58,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <BountyHall />
+      <BountyHall initialData={initialData} />
 
       <p className="footer">
         门户入口仅跳转源站；岗位与悬赏可认领协作。完善技能后排序更准。

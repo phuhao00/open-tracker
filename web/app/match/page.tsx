@@ -1,7 +1,7 @@
 import { MatchWorkspace } from "@/components/MatchWorkspace";
 import { loadSnapshot } from "@/lib/data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function MatchPage() {
   let projects: Awaited<ReturnType<typeof loadSnapshot>>["projects"] = [];

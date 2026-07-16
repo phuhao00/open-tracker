@@ -50,6 +50,50 @@ Inspired by [paid-open-source-projects](https://github.com/kunovsky/paid-open-so
 
 ---
 
+## Product screenshots / 产品截图
+
+截图存放于 [`data/images/`](data/images/)。按产品主路径浏览：
+
+### 1. 机会大厅 · Opportunity Hall
+
+多源悬赏 / 岗位 / 门户入口聚合，支持大类、地区、用工形态与数据源分层筛选。
+
+![机会大厅](data/images/hall.jpg)
+
+### 2. 发布机会 · Publish
+
+OPC / 个人发布协作与雇佣信息（须同意发布须知；平台不做职业介绍中介）。
+
+![发布机会](data/images/publish.jpg)
+
+### 3. 智能匹配 · Smart Match
+
+按技能与目标（快速接单 / 结算清楚 / 冲大额 / 练手）推荐项目与可接任务。
+
+![智能匹配](data/images/match.jpg)
+
+### 4. 协作社区 · Community
+
+进行中认领、社区动态与灵活就业伙伴墙，避免单打独斗。
+
+![协作社区](data/images/community.jpg)
+
+### 5. 工作台 · Dashboard
+
+技能目标、对外档案（GitHub / Bilibili 等）、公开主页与收益账本。
+
+![我的工作台](data/images/dashboard.jpg)
+
+### 6. 登录 / 注册 · Auth
+
+邮箱登录协作工作台；注册后即可同步机会并开始匹配。
+
+| 登录 Login | 注册 Register |
+|:---:|:---:|
+| ![登录](data/images/login.jpg) | ![注册](data/images/register.png) |
+
+---
+
 ## Quick start / 快速开始
 
 ### Web（推荐主产品）
@@ -155,7 +199,9 @@ opentacker/
 ├── config.yaml                 # tracker config
 ├── src/opentacker/             # Python CLI pipeline
 ├── reports/                    # Markdown reports
-├── data/history/               # JSON snapshots
+├── data/
+│   ├── history/                # JSON snapshots
+│   └── images/                 # product screenshots for README
 ├── web/                        # Next.js app (port 6700)
 │   ├── app/                    # routes & APIs
 │   ├── components/             # hall, community, dashboard…

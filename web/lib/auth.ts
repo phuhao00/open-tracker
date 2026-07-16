@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
+import { cache } from "react";
 import { z } from "zod";
 import { prisma } from "./prisma";
 
@@ -9,7 +10,7 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 });
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   trustHost: true,
   session: { strategy: "jwt" },
   pages: {
@@ -58,3 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   secret: process.env.AUTH_SECRET,
 });
+
+export const { handlers, signIn, signOut } = nextAuth;
+/** 同一请求内 layout / page 共用，避免重复读 session */
+export const auth = cache(nextAuth.auth);

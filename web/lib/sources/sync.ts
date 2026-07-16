@@ -20,7 +20,10 @@ export const ALL_FETCHERS: SourceFetcher[] = [
   portalDirectorySource,
 ];
 
-export async function ensureDefaultSources() {
+/** 进程内只跑一次：大厅每次请求 upsert 全源会把 SQLite 打满 */
+let defaultSourcesReady: Promise<void> | null = null;
+
+async function seedDefaultSources() {
   for (const f of ALL_FETCHERS) {
     await prisma.bountySource.upsert({
       where: { key: f.key },
@@ -37,6 +40,16 @@ export async function ensureDefaultSources() {
     });
   }
   await ensureCommunitySource();
+}
+
+export async function ensureDefaultSources() {
+  if (!defaultSourcesReady) {
+    defaultSourcesReady = seedDefaultSources().catch((err) => {
+      defaultSourcesReady = null;
+      throw err;
+    });
+  }
+  return defaultSourcesReady;
 }
 
 /** 用户自发帖专用源（无 fetcher，不参与 sync） */
@@ -61,15 +74,16 @@ export async function ensureCommunitySource() {
 export async function ensureUserSources(userId: string) {
   await ensureDefaultSources();
   const sources = await prisma.bountySource.findMany({ select: { id: true } });
-  for (const source of sources) {
-    await prisma.userSource.upsert({
-      where: {
-        userId_sourceId: { userId, sourceId: source.id },
-      },
-      create: { userId, sourceId: source.id, enabled: true },
-      update: {},
-    });
-  }
+  const existing = await prisma.userSource.findMany({
+    where: { userId },
+    select: { sourceId: true },
+  });
+  const have = new Set(existing.map((e) => e.sourceId));
+  const missing = sources.filter((s) => !have.has(s.id));
+  if (!missing.length) return;
+  await prisma.userSource.createMany({
+    data: missing.map((s) => ({ userId, sourceId: s.id, enabled: true })),
+  });
 }
 
 export async function syncSource(key: string) {

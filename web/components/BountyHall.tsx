@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PaginationBar } from "@/components/PaginationBar";
+import type { BountiesListResult, BountyListItem } from "@/lib/bounties-list";
 import { KIND_LABEL, SOURCE_LABEL } from "@/lib/source-labels";
 import {
   BUCKET_META,
@@ -16,54 +17,26 @@ import {
   type WorkType,
 } from "@/lib/taxonomy";
 
-type Taxonomy = {
-  bucket: OpportunityBucket;
-  region: RegionCode;
-  workType: WorkType;
-  channel: PortalChannel;
-};
-
-type BountyItem = {
-  id: string;
-  title: string;
-  url: string;
-  projectName: string;
-  repo: string | null;
-  amountText: string | null;
-  amountMax: number | null;
-  techTags: string[];
-  kind: string;
-  summary: string | null;
-  matchScore: number | null;
-  matchReasons: string[];
-  taxonomy: Taxonomy;
-  taxonomyLabel: { bucket: string; region: string; work: string };
-  engagementType?: string;
-  contactMode?: string | null;
-  contactValue?: string | null;
-  locationText?: string | null;
-  publisher?: { id: string; name: string | null; headline: string | null } | null;
-  activeClaims: Array<{ id: string; status: string; user: { id: string; name: string | null } }>;
-  source: { key: string; name: string };
-};
+type BountyItem = BountyListItem;
 
 type CountFacet = { key: string; count: number };
 type SourceFacet = { key: string; name: string; count: number };
 
 const PAGE_SIZE = 10;
 
-export function BountyHall() {
+export function BountyHall({ initialData }: { initialData?: BountiesListResult | null }) {
   const { status } = useSession();
   const listRef = useRef<HTMLDivElement>(null);
-  const [items, setItems] = useState<BountyItem[]>([]);
-  const [facets, setFacets] = useState<{
-    sources: SourceFacet[];
-    buckets: CountFacet[];
-    regions: CountFacet[];
-    workTypes: CountFacet[];
-    channels: CountFacet[];
-  }>({ sources: [], buckets: [], regions: [], workTypes: [], channels: [] });
-  const [personalized, setPersonalized] = useState(false);
+  const bootSynced = useRef(false);
+  const [items, setItems] = useState<BountyItem[]>(initialData?.items ?? []);
+  const [facets, setFacets] = useState({
+    sources: (initialData?.facets.sources ?? []) as SourceFacet[],
+    buckets: (initialData?.facets.buckets ?? []) as CountFacet[],
+    regions: (initialData?.facets.regions ?? []) as CountFacet[],
+    workTypes: (initialData?.facets.workTypes ?? []) as CountFacet[],
+    channels: (initialData?.facets.channels ?? []) as CountFacet[],
+  });
+  const [personalized, setPersonalized] = useState(Boolean(initialData?.personalized));
   const [q, setQ] = useState("");
   const [source, setSource] = useState("");
   const [bucket, setBucket] = useState<"" | OpportunityBucket>("");
@@ -72,14 +45,30 @@ export function BountyHall() {
   const [channel, setChannel] = useState<PortalChannel>("");
   const [engagement, setEngagement] = useState<"" | "project" | "employment">("");
   const [sort, setSort] = useState("match");
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(initialData?.page ?? 1);
+  const [total, setTotal] = useState(initialData?.total ?? 0);
+  const [totalPages, setTotalPages] = useState(initialData?.totalPages ?? 1);
+  const [loading, setLoading] = useState(!initialData);
   const [syncing, setSyncing] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [fadeKey, setFadeKey] = useState(0);
+
+  const applyResult = useCallback((data: BountiesListResult, fallbackPage: number) => {
+    setItems(data.items || []);
+    setFacets({
+      sources: data.facets?.sources || [],
+      buckets: data.facets?.buckets || [],
+      regions: data.facets?.regions || [],
+      workTypes: data.facets?.workTypes || [],
+      channels: data.facets?.channels || [],
+    });
+    setPersonalized(Boolean(data.personalized));
+    setTotal(data.total || 0);
+    setTotalPages(data.totalPages || 1);
+    setPage(data.page || fallbackPage);
+    setFadeKey((k) => k + 1);
+  }, []);
 
   const load = useCallback(
     async (opts?: {
@@ -120,30 +109,31 @@ export function BountyHall() {
       params.set("limit", String(PAGE_SIZE));
 
       const res = await fetch(`/api/bounties?${params.toString()}`);
-      const data = await res.json();
-      setItems(data.items || []);
-      setFacets({
-        sources: data.facets?.sources || [],
-        buckets: data.facets?.buckets || [],
-        regions: data.facets?.regions || [],
-        workTypes: data.facets?.workTypes || [],
-        channels: data.facets?.channels || [],
-      });
-      setPersonalized(Boolean(data.personalized));
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-      setPage(data.page || next.page);
-      setFadeKey((k) => k + 1);
+      const data = (await res.json()) as BountiesListResult;
+      applyResult(data, next.page);
       setLoading(false);
 
       if (opts?.scroll) {
         listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [q, source, bucket, region, workType, channel, engagement, sort, page],
+    [q, source, bucket, region, workType, channel, engagement, sort, page, applyResult],
   );
 
   useEffect(() => {
+    if (status === "loading") return;
+
+    // 服务端已灌入首屏数据，且与当前登录态一致时跳过首轮请求
+    if (!bootSynced.current && initialData) {
+      bootSynced.current = true;
+      const matchesSession =
+        Boolean(initialData.personalized) === (status === "authenticated");
+      if (matchesSession) {
+        setLoading(false);
+        return;
+      }
+    }
+
     load({ page: 1 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
@@ -629,11 +619,10 @@ export function BountyHall() {
                   </button>
                 </div>
               )}
-              {items.map((item, idx) => (
+              {items.map((item) => (
                 <article
                   key={item.id}
                   className="task-card task-card-interactive"
-                  style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}
                 >
                   <div className="task-main">
                     <div className="task-meta">
