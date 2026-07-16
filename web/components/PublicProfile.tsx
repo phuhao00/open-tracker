@@ -5,12 +5,14 @@ import Link from "next/link";
 import { formatUsdCents } from "@/lib/matching";
 import {
   platformLabel,
-  toEmbedUrl,
+  extractGithubUsername,
+  extractBilibiliMid,
   type SocialLink,
-  type VideoLink,
+  type WorkItem,
 } from "@/lib/profile-media";
 import { GithubProfileEmbed } from "@/components/GithubProfileEmbed";
-import { extractGithubUsername } from "@/lib/github-embed";
+import { BilibiliProfileEmbed } from "@/components/BilibiliProfileEmbed";
+import { WorksGallery } from "@/components/WorksGallery";
 
 type Profile = {
   id: string;
@@ -19,7 +21,7 @@ type Profile = {
   bio: string | null;
   aboutLong: string | null;
   socials: SocialLink[];
-  videos: VideoLink[];
+  videos: WorkItem[];
   skills: string[];
   goal: string;
   availableHours: string;
@@ -56,6 +58,11 @@ function socialHref(s: SocialLink) {
   return s.url;
 }
 
+function scrollToId(id: string) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 export function PublicProfile({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
@@ -87,10 +94,25 @@ export function PublicProfile({ userId }: { userId: string }) {
   const githubLink =
     socials.find((s) => s.platform === "github" && extractGithubUsername(s.url)) ||
     socials.find((s) => extractGithubUsername(s.url));
+  const bilibiliLink =
+    socials.find((s) => s.platform === "bilibili" && extractBilibiliMid(s.url)) ||
+    socials.find((s) => extractBilibiliMid(s.url));
+  const primaryContact =
+    socials.find((s) => s.platform === "email") ||
+    socials.find((s) => s.platform === "website") ||
+    socials[0];
+
+  const jumpItems = [
+    videos.length > 0 ? { id: "profile-works", label: "作品" } : null,
+    githubLink ? { id: "profile-github", label: "GitHub" } : null,
+    bilibiliLink ? { id: "profile-bilibili", label: "B 站" } : null,
+    profile.aboutLong ? { id: "profile-about", label: "介绍" } : null,
+    { id: "profile-claims", label: "经历" },
+  ].filter(Boolean) as Array<{ id: string; label: string }>;
 
   return (
     <div className="profile-page">
-      <section className="panel profile-hero">
+      <section className="panel profile-hero profile-hero-spotlight">
         <div>
           <div className="eyebrow">灵活就业伙伴</div>
           <h1>{profile.name || "未命名伙伴"}</h1>
@@ -105,19 +127,52 @@ export function PublicProfile({ userId }: { userId: string }) {
               </span>
             ))}
           </div>
+
+          <div className="profile-cta-row">
+            {videos.length > 0 && (
+              <button type="button" className="btn gold profile-cta-main" onClick={() => scrollToId("profile-works")}>
+                看作品展示
+              </button>
+            )}
+            {primaryContact && (
+              <a
+                className="btn primary profile-cta-main"
+                href={socialHref(primaryContact)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                联系 {platformLabel(primaryContact.platform)} ↗
+              </a>
+            )}
+            {githubLink && (
+              <a className="btn ghost" href={githubLink.url} target="_blank" rel="noreferrer">
+                GitHub ↗
+              </a>
+            )}
+            {bilibiliLink && (
+              <a className="btn ghost" href={bilibiliLink.url} target="_blank" rel="noreferrer">
+                B 站主页 ↗
+              </a>
+            )}
+          </div>
+
           {socials.length > 0 && (
-            <div className="social-row" style={{ marginTop: "1rem" }}>
-              {socials.map((s, i) => (
-                <a
-                  key={`${s.platform}-${i}`}
-                  className="social-chip"
-                  href={socialHref(s)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {s.label || platformLabel(s.platform)}
-                </a>
-              ))}
+            <div className="social-actions">
+              <p className="social-actions-label">社交与主页 · 点击直达</p>
+              <div className="social-row social-row-loud">
+                {socials.map((s, i) => (
+                  <a
+                    key={`${s.platform}-${i}`}
+                    className={`social-chip social-chip-loud platform-${s.platform}`}
+                    href={socialHref(s)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span className="social-chip-name">{s.label || platformLabel(s.platform)}</span>
+                    <span className="social-chip-go">打开 ↗</span>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -138,63 +193,60 @@ export function PublicProfile({ userId }: { userId: string }) {
             {HOURS[profile.availableHours] || profile.availableHours}
             {profile.city ? ` · ${profile.city}` : ""}
           </p>
+          {jumpItems.length > 0 && (
+            <div className="profile-jump">
+              <p className="social-actions-label">快速定位</p>
+              <div className="profile-jump-row">
+                {jumpItems.map((j) => (
+                  <button
+                    key={j.id}
+                    type="button"
+                    className="profile-jump-chip"
+                    onClick={() => scrollToId(j.id)}
+                  >
+                    {j.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {githubLink && <GithubProfileEmbed githubUrl={githubLink.url} />}
+      {githubLink && (
+        <div id="profile-github">
+          <GithubProfileEmbed githubUrl={githubLink.url} />
+        </div>
+      )}
+      {bilibiliLink && (
+        <div id="profile-bilibili">
+          <BilibiliProfileEmbed bilibiliUrl={bilibiliLink.url} />
+        </div>
+      )}
+
+      <div id="profile-works">
+        <WorksGallery works={videos} />
+      </div>
 
       {profile.aboutLong && (
-        <section className="panel">
+        <section className="panel" id="profile-about">
           <h2>完整介绍</h2>
           <div className="about-long">{profile.aboutLong}</div>
         </section>
       )}
 
-      {videos.length > 0 && (
-        <section className="panel">
-          <h2>自我介绍视频</h2>
-          <p className="hint">来自各平台的介绍 / Demo 视频</p>
-          <div className="video-grid">
-            {videos.map((v, i) => {
-              const embed = toEmbedUrl(v.url);
-              return (
-                <article key={`${v.url}-${i}`} className="video-card">
-                  {v.title && <h3>{v.title}</h3>}
-                  {embed ? (
-                    <div className="video-frame">
-                      <iframe
-                        src={embed.embedUrl}
-                        title={v.title || embed.platform}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                      />
-                    </div>
-                  ) : (
-                    <a className="btn ghost" href={v.url} target="_blank" rel="noreferrer">
-                      打开视频链接 ↗
-                    </a>
-                  )}
-                  {!embed && <p className="muted tiny">暂不支持内嵌，请点链接观看</p>}
-                  {embed && (
-                    <a className="muted tiny video-source" href={v.url} target="_blank" rel="noreferrer">
-                      在 {embed.platform} 打开 ↗
-                    </a>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="panel">
+      <section className="panel" id="profile-claims">
         <h2>最近在做 / 做过</h2>
         <div className="task-list" style={{ marginTop: "0.8rem" }}>
           {profile.claims.length === 0 && <p className="muted">暂无公开认领记录</p>}
           {profile.claims.map((c) => (
-            <article key={c.id} className="task-card">
+            <a
+              key={c.id}
+              className="task-card task-card-link"
+              href={c.task.url}
+              target="_blank"
+              rel="noreferrer"
+            >
               <div className="task-main">
                 <div className="task-meta">
                   <span className="mini-tag">{c.status}</span>
@@ -205,10 +257,8 @@ export function PublicProfile({ userId }: { userId: string }) {
                 <h4>{c.task.title}</h4>
                 <p className="muted">{c.task.projectName}</p>
               </div>
-              <a className="btn ghost" href={c.task.url} target="_blank" rel="noreferrer">
-                查看 ↗
-              </a>
-            </article>
+              <span className="btn primary">查看详情 ↗</span>
+            </a>
           ))}
         </div>
       </section>
@@ -230,6 +280,32 @@ export function PublicProfile({ userId }: { userId: string }) {
           ))}
         </div>
       </section>
+
+      <div className="profile-sticky-bar" role="navigation" aria-label="快捷操作">
+        {videos.length > 0 && (
+          <button type="button" className="btn gold" onClick={() => scrollToId("profile-works")}>
+            作品
+          </button>
+        )}
+        {primaryContact && (
+          <a className="btn primary" href={socialHref(primaryContact)} target="_blank" rel="noreferrer">
+            联系 ↗
+          </a>
+        )}
+        {githubLink && (
+          <a className="btn ghost" href={githubLink.url} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        )}
+        {bilibiliLink && (
+          <a className="btn ghost" href={bilibiliLink.url} target="_blank" rel="noreferrer">
+            B站
+          </a>
+        )}
+        <Link href="/community" className="btn ghost">
+          社区
+        </Link>
+      </div>
     </div>
   );
 }

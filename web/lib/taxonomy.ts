@@ -53,6 +53,7 @@ export const SOURCE_GROUP: Record<string, { label: string; region: RegionCode }>
   jobicy: { label: "远程岗位", region: "remote" },
   arbeitnow: { label: "欧洲科技", region: "global" },
   portal_directory: { label: "门户入口", region: "cn" },
+  community: { label: "社区发布", region: "global" },
 };
 
 const CN_HINT =
@@ -96,15 +97,19 @@ export function classifyTaxonomy(input: {
     ["paid_list", "github_search", "algora"].includes(input.sourceKey)
   ) {
     bucket = "bounty";
-  } else if (input.kind === "opportunity") {
+  } else if (input.sourceKey === "community" && input.kind === "bounty") {
     bucket = "bounty";
+  } else if (input.kind === "opportunity") {
+    bucket = "opening";
   }
 
   let workType: WorkType = "other";
   if (bucket === "bounty" || input.kind === "bounty") workType = "bounty";
   else if (input.kind === "parttime" || PARTTIME_HINT.test(blob)) workType = "parttime";
-  else if (CONTRACT_HINT.test(blob)) workType = "contract";
-  else if (input.kind === "job" || FULLTIME_HINT.test(blob)) workType = "fulltime";
+  else if (CONTRACT_HINT.test(blob) || /项目协作|外包/.test(blob)) workType = "contract";
+  else if (input.kind === "job" || FULLTIME_HINT.test(blob) || /雇佣机会/.test(blob))
+    workType = "fulltime";
+  else if (input.kind === "opportunity") workType = "contract";
   else if (bucket === "portal") workType = "other";
 
   let region: RegionCode = SOURCE_GROUP[input.sourceKey]?.region || "global";

@@ -25,6 +25,7 @@ model User {
   city           String?
   profilePublic  Boolean   @default(true)
   reputation     Int       @default(0)
+  role           String    @default("user") // user | moderator
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   accounts       Account[]
@@ -34,6 +35,8 @@ model User {
   claims         TaskClaim[]
   activities     Activity[]
   earnings       Earning[]
+  publishedTasks BountyTask[]       @relation("TaskPublisher")
+  reportsFiled   OpportunityReport[] @relation("ReportReporter")
 }
 
 model Account {
@@ -97,32 +100,59 @@ model UserSource {
 }
 
 model BountyTask {
-  id          String   @id @default(cuid())
-  sourceId    String
-  externalId  String
-  title       String
-  url         String
-  projectName String
-  repo        String?
-  amountText  String?
-  amountMin   Int?
-  amountMax   Int?
-  currency    String   @default("USD")
-  techTags    String   @default("[]")
-  kind        String   @default("bounty")
-  status      String   @default("open")
-  summary     String?
-  rawJson     String   @default("{}")
-  fetchedAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  source      BountySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  shortlists  Shortlist[]
-  claims      TaskClaim[]
-  activities  Activity[]
+  id               String    @id @default(cuid())
+  sourceId         String
+  externalId       String
+  title            String
+  url              String
+  projectName      String
+  repo             String?
+  amountText       String?
+  amountMin        Int?
+  amountMax        Int?
+  currency         String    @default("USD")
+  techTags         String    @default("[]")
+  kind             String    @default("bounty")
+  status           String    @default("open")
+  summary          String?
+  rawJson          String    @default("{}")
+  publisherId      String?
+  engagementType   String    @default("project") // project | employment
+  moderationStatus String    @default("approved") // pending | approved | rejected | taken_down
+  expiresAt        DateTime?
+  contactMode      String?   // profile | email | url
+  contactValue     String?
+  locationText     String?
+  fetchedAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  source           BountySource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  publisher        User?     @relation("TaskPublisher", fields: [publisherId], references: [id], onDelete: SetNull)
+  shortlists       Shortlist[]
+  claims           TaskClaim[]
+  activities       Activity[]
+  reports          OpportunityReport[]
 
   @@unique([sourceId, externalId])
   @@index([status, amountMax])
   @@index([projectName])
+  @@index([moderationStatus, expiresAt])
+  @@index([publisherId])
+}
+
+model OpportunityReport {
+  id         String   @id @default(cuid())
+  taskId     String
+  reporterId String
+  reason     String
+  detail     String?
+  status     String   @default("open") // open | reviewed | dismissed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  task       BountyTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  reporter   User       @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([taskId])
 }
 
 model Shortlist {

@@ -1,7 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { GithubEmbedPayload } from "@/lib/github-embed";
+
+type GithubEmbedPayload = {
+  profile: {
+    login: string;
+    name: string | null;
+    bio: string | null;
+    avatarUrl: string;
+    htmlUrl: string;
+    company: string | null;
+    location: string | null;
+    blog: string | null;
+    publicRepos: number;
+    followers: number;
+    following: number;
+  };
+  repos: Array<{
+    id: number;
+    name: string;
+    htmlUrl: string;
+    description: string | null;
+    language: string | null;
+    stargazersCount: number;
+    forksCount: number;
+  }>;
+};
 
 export function GithubProfileEmbed({ githubUrl }: { githubUrl: string }) {
   const [data, setData] = useState<GithubEmbedPayload | null>(null);
@@ -60,12 +84,13 @@ export function GithubProfileEmbed({ githubUrl }: { githubUrl: string }) {
     <section className="panel github-embed">
       <div className="github-embed-head">
         <h2>GitHub</h2>
-        <a className="btn ghost" href={profile.htmlUrl} target="_blank" rel="noreferrer">
-          打开主页 ↗
+        <a className="btn primary" href={profile.htmlUrl} target="_blank" rel="noreferrer">
+          打开 GitHub 主页 ↗
         </a>
       </div>
 
       <div className="github-card">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="github-avatar"
           src={profile.avatarUrl}
@@ -83,7 +108,11 @@ export function GithubProfileEmbed({ githubUrl }: { githubUrl: string }) {
             {profile.location && <span>{profile.location}</span>}
             {profile.company && <span>{profile.company}</span>}
             {profile.blog && (
-              <a href={profile.blog.startsWith("http") ? profile.blog : `https://${profile.blog}`} target="_blank" rel="noreferrer">
+              <a
+                href={profile.blog.startsWith("http") ? profile.blog : `https://${profile.blog}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 网站
               </a>
             )}

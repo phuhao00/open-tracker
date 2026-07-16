@@ -25,6 +25,10 @@ export async function GET(req: Request) {
   const region = (searchParams.get("region")?.trim() ?? "") as "" | RegionCode;
   const workType = (searchParams.get("workType")?.trim() ?? "") as "" | WorkType;
   const channel = (searchParams.get("channel")?.trim() ?? "") as PortalChannel;
+  const engagementType = (searchParams.get("engagement")?.trim() ?? "") as
+    | ""
+    | "project"
+    | "employment";
   const sort = searchParams.get("sort") || "match";
   const page = Math.max(1, Number(searchParams.get("page") || 1) || 1);
   const pageSize = Math.min(Math.max(Number(searchParams.get("limit") || 10) || 10, 1), 40);
@@ -49,13 +53,21 @@ export async function GET(req: Request) {
     }
   }
 
+  const now = new Date();
   const baseWhere = {
     status: "open" as const,
+    moderationStatus: "approved" as const,
+    AND: [
+      {
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      },
+    ],
     ...(allowedSourceIds ? { sourceId: { in: allowedSourceIds } } : {}),
     ...(sourceKey
       ? { source: { key: sourceKey } }
       : { source: { enabled: true } }),
     ...(kind ? { kind } : {}),
+    ...(engagementType ? { engagementType } : {}),
     ...(q
       ? {
           OR: [
@@ -74,6 +86,7 @@ export async function GET(req: Request) {
     where: baseWhere,
     include: {
       source: true,
+      publisher: { select: { id: true, name: true, headline: true } },
       claims: {
         where: { status: { in: ["working", "submitted"] } },
         select: {
@@ -117,6 +130,7 @@ export async function GET(req: Request) {
     });
     return {
       ...t,
+      contactValue: session?.user ? t.contactValue : null,
       techTags,
       activeClaims: t.claims,
       taxonomy,
@@ -183,7 +197,7 @@ export async function GET(req: Request) {
     total,
     totalPages,
     personalized: Boolean(session?.user),
-    applied: { q, source: sourceKey, kind, bucket, region, workType, channel, sort },
+    applied: { q, source: sourceKey, kind, bucket, region, workType, channel, engagement: engagementType, sort },
     facets: {
       sources: [...sourceCounts.values()].sort((a, b) => b.count - a.count),
       kinds: countBy((r) => r.kind),

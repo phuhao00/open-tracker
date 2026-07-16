@@ -1,45 +1,6 @@
-export function extractGithubUsername(rawUrl: string): string | null {
-  const trimmed = rawUrl.trim();
-  if (/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(trimmed)) {
-    return trimmed;
-  }
-  try {
-    const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    const url = new URL(withProto);
-    const host = url.hostname.replace(/^www\./, "").toLowerCase();
-    if (host !== "github.com") return null;
-    const parts = url.pathname.split("/").filter(Boolean);
-    if (parts.length === 0) return null;
-    const reserved = new Set([
-      "settings",
-      "notifications",
-      "pulls",
-      "issues",
-      "marketplace",
-      "explore",
-      "topics",
-      "organizations",
-      "login",
-      "signup",
-      "about",
-      "pricing",
-      "features",
-      "enterprise",
-      "security",
-      "team",
-      "orgs",
-      "users",
-      "search",
-      "new",
-    ]);
-    const login = parts[0];
-    if (!login || reserved.has(login.toLowerCase())) return null;
-    if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(login)) return null;
-    return login;
-  } catch {
-    return null;
-  }
-}
+import { extractGithubUsername } from "@/lib/profile-media";
+
+export { extractGithubUsername };
 
 export type GithubPublicProfile = {
   login: string;
@@ -141,7 +102,6 @@ export async function fetchGithubEmbed(login: string): Promise<GithubEmbedPayloa
       updatedAt: r.updated_at,
     }));
 
-  // if all were forks, fall back to first few including forks
   const finalRepos =
     repos.length > 0
       ? repos

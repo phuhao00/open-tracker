@@ -480,7 +480,10 @@ function ProjectPickCard({
       <button
         type="button"
         className={`bookmark ${bookmarked ? "on" : ""}`}
-        onClick={onBookmark}
+        onClick={(e) => {
+          e.stopPropagation();
+          onBookmark();
+        }}
         aria-label={bookmarked ? "移出短名单" : "加入短名单"}
         title={bookmarked ? "移出短名单" : "先收藏，稍后再看"}
       >

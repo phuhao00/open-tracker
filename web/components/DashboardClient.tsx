@@ -9,7 +9,7 @@ import { PaginationBar } from "@/components/PaginationBar";
 import {
   SOCIAL_PLATFORMS,
   type SocialLink,
-  type VideoLink,
+  type WorkItem,
 } from "@/lib/profile-media";
 
 type MeData = {
@@ -20,7 +20,7 @@ type MeData = {
   bio: string | null;
   aboutLong: string | null;
   socials: SocialLink[];
-  videos: VideoLink[];
+  videos: WorkItem[];
   availableHours: string;
   city: string | null;
   profilePublic: boolean;
@@ -114,7 +114,7 @@ export function DashboardClient() {
   const [aboutLong, setAboutLong] = useState("");
   const [city, setCity] = useState("");
   const [socials, setSocials] = useState<SocialLink[]>([]);
-  const [videos, setVideos] = useState<VideoLink[]>([]);
+  const [videos, setVideos] = useState<WorkItem[]>([]);
   const [claimPage, setClaimPage] = useState(1);
   const [earnPage, setEarnPage] = useState(1);
   const CLAIM_PAGE = 5;
@@ -198,8 +198,8 @@ export function DashboardClient() {
     });
     const data = await res.json();
     setSyncing(false);
-    flash(res.ok ? "同步完成" : data.error || "同步失败", res.ok ? "ok" : "err");
-    await refresh();
+    flash(res.ok ? "同步完成" : data.error || "同步失败（需审核员权限）", res.ok ? "ok" : "err");
+    if (res.ok) await refresh();
   }
 
   async function updateClaim(taskId: string, nextStatus: string) {
@@ -282,7 +282,7 @@ export function DashboardClient() {
           </div>
           <div className="hall-actions">
             <button type="button" className="btn gold" disabled={syncing} onClick={() => sync()}>
-              {syncing ? "同步中…" : "同步全部数据源"}
+              {syncing ? "同步中…" : "同步外部数据源"}
             </button>
             <Link href="/community" className="btn primary">
               社区协作
@@ -384,47 +384,62 @@ export function DashboardClient() {
 
         <div className="profile-editor-block">
           <div className="profile-editor-head">
-            <h3>介绍视频（多平台链接）</h3>
+            <h3>作品展示（内嵌播放）</h3>
             <button
               type="button"
               className="btn ghost"
-              onClick={() => setVideos((prev) => [...prev, { title: "", url: "" }])}
+              onClick={() => setVideos((prev) => [...prev, { title: "", description: "", url: "" }])}
             >
-              + 添加视频
+              + 添加作品
             </button>
           </div>
           <p className="hint">
-            粘贴 YouTube / Bilibili / Vimeo / Loom 等视频页链接，公开主页会尽量内嵌播放；不支持内嵌的会显示跳转按钮。
+            粘贴 Bilibili / YouTube / Vimeo / Loom / CodePen / CodeSandbox / Figma
+            等作品链接，公开主页会内嵌展示。也可只填标题 + 外链。
           </p>
-          {videos.length === 0 && <p className="muted">可放自我介绍、Demo、talk 录屏等。</p>}
+          {videos.length === 0 && (
+            <p className="muted">推荐放代表作、Demo、讲解视频；B 站主页绑定后也会自动拉近期投稿。</p>
+          )}
           <div className="link-editor-list">
             {videos.map((v, i) => (
-              <div key={i} className="link-editor-row video-row">
-                <input
-                  value={v.title || ""}
+              <div key={i} className="work-editor-block">
+                <div className="link-editor-row video-row">
+                  <input
+                    value={v.title || ""}
+                    onChange={(e) => {
+                      const next = [...videos];
+                      next[i] = { ...next[i], title: e.target.value };
+                      setVideos(next);
+                    }}
+                    placeholder="作品标题"
+                  />
+                  <input
+                    value={v.url}
+                    onChange={(e) => {
+                      const next = [...videos];
+                      next[i] = { ...next[i], url: e.target.value };
+                      setVideos(next);
+                    }}
+                    placeholder="https://www.bilibili.com/video/BVxxxx 或 YouTube 链接"
+                  />
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => setVideos(videos.filter((_, j) => j !== i))}
+                  >
+                    删除
+                  </button>
+                </div>
+                <textarea
+                  value={v.description || ""}
                   onChange={(e) => {
                     const next = [...videos];
-                    next[i] = { ...next[i], title: e.target.value };
+                    next[i] = { ...next[i], description: e.target.value };
                     setVideos(next);
                   }}
-                  placeholder="标题（可选）"
+                  rows={2}
+                  placeholder="作品说明（可选）：你做了什么、用到什么技术…"
                 />
-                <input
-                  value={v.url}
-                  onChange={(e) => {
-                    const next = [...videos];
-                    next[i] = { ...next[i], url: e.target.value };
-                    setVideos(next);
-                  }}
-                  placeholder="https://www.youtube.com/watch?v=... 或 bilibili 视频链接"
-                />
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => setVideos(videos.filter((_, j) => j !== i))}
-                >
-                  删除
-                </button>
               </div>
             ))}
           </div>

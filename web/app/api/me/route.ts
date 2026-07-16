@@ -18,6 +18,7 @@ const socialSchema = z.object({
 
 const videoSchema = z.object({
   title: z.string().max(120).optional(),
+  description: z.string().max(800).optional(),
   url: z.string().min(1).max(500),
 });
 
@@ -199,6 +200,7 @@ export async function PATCH(req: Request) {
         if (!url) continue;
         cleaned.push({
           ...(v.title?.trim() ? { title: v.title.trim() } : {}),
+          ...(v.description?.trim() ? { description: v.description.trim() } : {}),
           url,
         });
       }

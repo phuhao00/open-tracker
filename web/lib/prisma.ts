@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-const SCHEMA_VERSION = "profile-media-v1";
+const SCHEMA_VERSION = "ugc-opportunities-v1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;

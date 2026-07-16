@@ -38,6 +38,11 @@ type BountyItem = {
   matchReasons: string[];
   taxonomy: Taxonomy;
   taxonomyLabel: { bucket: string; region: string; work: string };
+  engagementType?: string;
+  contactMode?: string | null;
+  contactValue?: string | null;
+  locationText?: string | null;
+  publisher?: { id: string; name: string | null; headline: string | null } | null;
   activeClaims: Array<{ id: string; status: string; user: { id: string; name: string | null } }>;
   source: { key: string; name: string };
 };
@@ -65,6 +70,7 @@ export function BountyHall() {
   const [region, setRegion] = useState<"" | RegionCode>("");
   const [workType, setWorkType] = useState<"" | WorkType>("");
   const [channel, setChannel] = useState<PortalChannel>("");
+  const [engagement, setEngagement] = useState<"" | "project" | "employment">("");
   const [sort, setSort] = useState("match");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -83,6 +89,7 @@ export function BountyHall() {
       region?: "" | RegionCode;
       workType?: "" | WorkType;
       channel?: PortalChannel;
+      engagement?: "" | "project" | "employment";
       sort?: string;
       page?: number;
       scroll?: boolean;
@@ -94,6 +101,7 @@ export function BountyHall() {
         region: opts?.region ?? region,
         workType: opts?.workType ?? workType,
         channel: opts?.channel ?? channel,
+        engagement: opts?.engagement ?? engagement,
         sort: opts?.sort ?? sort,
         page: opts?.page ?? page,
       };
@@ -106,6 +114,7 @@ export function BountyHall() {
       if (next.region) params.set("region", next.region);
       if (next.workType) params.set("workType", next.workType);
       if (next.channel) params.set("channel", next.channel);
+      if (next.engagement) params.set("engagement", next.engagement);
       params.set("sort", next.sort);
       params.set("page", String(next.page));
       params.set("limit", String(PAGE_SIZE));
@@ -131,7 +140,7 @@ export function BountyHall() {
         listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [q, source, bucket, region, workType, channel, sort, page],
+    [q, source, bucket, region, workType, channel, engagement, sort, page],
   );
 
   useEffect(() => {
@@ -174,7 +183,7 @@ export function BountyHall() {
     const data = await res.json();
     setSyncing(false);
     if (!res.ok) {
-      setMessage(data.error || "同步失败");
+      setMessage(data.error || "同步失败（普通用户请改用「发布机会」）");
       return;
     }
     const summary = (data.results || [])
@@ -185,6 +194,22 @@ export function BountyHall() {
     setMessage(`同步完成 ${summary}`);
     setPage(1);
     await load({ page: 1 });
+  }
+
+  async function reportTask(taskId: string) {
+    if (status !== "authenticated") {
+      setMessage("登录后才能举报");
+      return;
+    }
+    const reason = window.prompt("举报原因：spam / illegal / misleading / scam / other", "spam");
+    if (!reason) return;
+    const res = await fetch("/api/opportunities/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskId, reason }),
+    });
+    const data = await res.json();
+    setMessage(res.ok ? data.message || "已举报" : data.error || "举报失败");
   }
 
   async function saveTask(taskId: string) {
@@ -229,6 +254,7 @@ export function BountyHall() {
     setRegion("");
     setWorkType("");
     setChannel("");
+    setEngagement("");
     setQ("");
     setPage(1);
     load({
@@ -238,6 +264,7 @@ export function BountyHall() {
       region: "",
       workType: "",
       channel: "",
+      engagement: "",
       page: 1,
     });
   }
@@ -299,6 +326,17 @@ export function BountyHall() {
         },
       });
     }
+    if (engagement) {
+      chips.push({
+        key: "engagement",
+        label: engagement === "project" ? "项目协作" : "雇佣信息",
+        clear: () => {
+          setEngagement("");
+          setPage(1);
+          load({ engagement: "", page: 1 });
+        },
+      });
+    }
     if (q) {
       chips.push({
         key: "q",
@@ -329,8 +367,11 @@ export function BountyHall() {
           <p className="hint">先选大类，再在左侧收窄地区与形态。</p>
         </div>
         <div className="hall-actions">
-          <button type="button" className="btn gold" onClick={syncAll} disabled={syncing}>
-            {syncing ? "同步中…" : "同步全网机会"}
+          <Link href="/publish" className="btn gold">
+            发布机会
+          </Link>
+          <button type="button" className="btn ghost" onClick={syncAll} disabled={syncing}>
+            {syncing ? "同步中…" : "同步外部源"}
           </button>
           {status !== "authenticated" ? (
             <Link href="/register" className="btn primary">
@@ -413,6 +454,32 @@ export function BountyHall() {
                 >
                   <span>{w.label}</span>
                   <em>{w.id ? workCounts[w.id] || 0 : facets.workTypes.reduce((s, x) => s + x.count, 0)}</em>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-block">
+            <h3>发布性质</h3>
+            <div className="filter-stack">
+              {(
+                [
+                  { id: "", label: "全部性质" },
+                  { id: "project", label: "项目协作" },
+                  { id: "employment", label: "雇佣信息" },
+                ] as const
+              ).map((e) => (
+                <button
+                  key={e.id || "engagement-all"}
+                  type="button"
+                  className={`filter-option ${engagement === e.id ? "active" : ""}`}
+                  onClick={() => {
+                    setEngagement(e.id);
+                    setPage(1);
+                    load({ engagement: e.id, page: 1 });
+                  }}
+                >
+                  <span>{e.label}</span>
                 </button>
               ))}
             </div>
@@ -591,8 +658,25 @@ export function BountyHall() {
                     <p className="muted">
                       {item.projectName}
                       {item.repo ? ` · ${item.repo}` : ""}
+                      {item.locationText ? ` · ${item.locationText}` : ""}
                       {item.summary ? ` · ${item.summary.slice(0, 90)}` : ""}
                     </p>
+                    {item.publisher && (
+                      <p className="claim-hint">
+                        发布者：
+                        <Link href={`/u/${item.publisher.id}`}>
+                          {item.publisher.name || "伙伴"}
+                        </Link>
+                        {item.engagementType === "employment"
+                          ? " · 雇佣信息（非中介）"
+                          : item.source.key === "community"
+                            ? " · 社区协作"
+                            : ""}
+                        {item.contactMode === "profile" && " · 联系见档案"}
+                        {item.contactValue &&
+                          ` · 联系：${item.contactValue}`}
+                      </p>
+                    )}
                     {item.matchReasons?.length > 0 && (
                       <p className="why-line">{item.matchReasons.join(" · ")}</p>
                     )}
@@ -622,11 +706,20 @@ export function BountyHall() {
                         disabled={busyId === item.id}
                         onClick={() => claimTask(item.id)}
                       >
-                        {busyId === item.id ? "处理中…" : "我来接这单"}
+                        {busyId === item.id ? "处理中…" : "我想接这单"}
                       </button>
                     )}
-                    <a className="btn primary" href={item.url} target="_blank" rel="noreferrer">
-                      {item.kind === "portal" ? "进入招聘入口 ↗" : "打开详情 ↗"}
+                    <a
+                      className="btn primary"
+                      href={item.url.startsWith("/") ? item.url : item.url}
+                      target={item.url.startsWith("/") ? undefined : "_blank"}
+                      rel={item.url.startsWith("/") ? undefined : "noreferrer"}
+                    >
+                      {item.kind === "portal"
+                        ? "进入招聘入口 ↗"
+                        : item.source.key === "community"
+                          ? "查看详情"
+                          : "打开详情 ↗"}
                     </a>
                     <button
                       type="button"
@@ -636,6 +729,15 @@ export function BountyHall() {
                     >
                       ☆ 收藏
                     </button>
+                    {item.source.key === "community" && (
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => reportTask(item.id)}
+                      >
+                        举报
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}

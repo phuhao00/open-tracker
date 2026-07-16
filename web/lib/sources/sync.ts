@@ -36,6 +36,25 @@ export async function ensureDefaultSources() {
       },
     });
   }
+  await ensureCommunitySource();
+}
+
+/** 用户自发帖专用源（无 fetcher，不参与 sync） */
+export async function ensureCommunitySource() {
+  return prisma.bountySource.upsert({
+    where: { key: "community" },
+    create: {
+      key: "community",
+      name: "社区发布",
+      description: "OPC / 个人发布的协作与机会信息（用户自填，非爬取）",
+      enabled: true,
+    },
+    update: {
+      name: "社区发布",
+      description: "OPC / 个人发布的协作与机会信息（用户自填，非爬取）",
+      enabled: true,
+    },
+  });
 }
 
 /** 为单个用户补齐新建数据源开关（默认启用） */
@@ -54,6 +73,9 @@ export async function ensureUserSources(userId: string) {
 }
 
 export async function syncSource(key: string) {
+  if (key === "community") {
+    throw new Error("社区发布源不支持同步抓取");
+  }
   const fetcher = ALL_FETCHERS.find((f) => f.key === key);
   if (!fetcher) throw new Error(`未知数据源: ${key}`);
 
@@ -88,6 +110,8 @@ export async function syncSource(key: string) {
           status: item.status,
           summary: item.summary ?? null,
           rawJson: JSON.stringify(item.raw ?? {}),
+          moderationStatus: "approved",
+          engagementType: item.kind === "job" || item.kind === "parttime" ? "employment" : "project",
           fetchedAt: new Date(),
         },
         update: {
@@ -104,6 +128,7 @@ export async function syncSource(key: string) {
           status: item.status,
           summary: item.summary ?? null,
           rawJson: JSON.stringify(item.raw ?? {}),
+          moderationStatus: "approved",
           fetchedAt: new Date(),
         },
       });
@@ -128,7 +153,9 @@ export async function syncSource(key: string) {
 
 export async function syncAllEnabledSources() {
   await ensureDefaultSources();
-  const sources = await prisma.bountySource.findMany({ where: { enabled: true } });
+  const sources = await prisma.bountySource.findMany({
+    where: { enabled: true, NOT: { key: "community" } },
+  });
   const results: Array<{ key: string; count?: number; error?: string }> = [];
   for (const s of sources) {
     try {

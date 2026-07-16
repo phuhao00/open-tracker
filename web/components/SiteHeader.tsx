@@ -31,6 +31,9 @@ export function SiteHeader() {
         <Link href="/" className={pathname === "/" ? "active" : ""}>
           大厅
         </Link>
+        <Link href="/publish" className={pathname.startsWith("/publish") ? "active" : ""}>
+          发布
+        </Link>
         <Link href="/match" className={pathname === "/match" ? "active" : ""}>
           匹配
         </Link>
@@ -40,7 +43,9 @@ export function SiteHeader() {
         >
           社区
         </Link>
-        {status === "authenticated" ? (
+        {status === "loading" ? (
+          <span className="topnav-session-placeholder" aria-hidden="true" />
+        ) : status === "authenticated" ? (
           <>
             <Link
               href="/dashboard"
