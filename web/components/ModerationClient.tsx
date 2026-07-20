@@ -91,9 +91,12 @@ export function ModerationClient() {
                 </div>
                 <h4>{p.title}</h4>
                 <p className="muted">{p.summary?.slice(0, 160)}</p>
-                {p.publisher && (
-                  <Link href={`/u/${p.publisher.id}`}>查看发布者档案 ↗</Link>
-                )}
+                <div className="detail-cta-stack" style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                  <Link href={`/opportunity/${p.id}`}>查看机会</Link>
+                  {p.publisher && (
+                    <Link href={`/u/${p.publisher.id}`}>发布者档案 ↗</Link>
+                  )}
+                </div>
               </div>
               <div className="detail-cta-stack">
                 <button type="button" className="btn gold" onClick={() => act(p.id, "approve")}>
@@ -121,6 +124,7 @@ export function ModerationClient() {
                 </div>
                 <h4>{r.task.title}</h4>
                 {r.detail && <p className="muted">{r.detail}</p>}
+                <Link href={`/opportunity/${r.task.id}`}>查看机会</Link>
               </div>
               <div className="detail-cta-stack">
                 <button

@@ -7,6 +7,18 @@ declare module "next-auth" {
       email: string;
       name?: string | null;
       image?: string | null;
+      role?: string;
+      isModerator?: boolean;
     };
+  }
+
+  interface User {
+    role?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
   }
 }

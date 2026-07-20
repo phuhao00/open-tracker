@@ -1,18 +1,18 @@
+import Link from "next/link";
 import { MatchWorkspace } from "@/components/MatchWorkspace";
-import { loadSnapshot } from "@/lib/data";
+import { auth } from "@/lib/auth";
+import { listBounties } from "@/lib/bounties-list";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function MatchPage() {
-  let projects: Awaited<ReturnType<typeof loadSnapshot>>["projects"] = [];
-  let generatedAt = new Date().toISOString();
-  try {
-    const snapshot = await loadSnapshot();
-    projects = snapshot.projects;
-    generatedAt = snapshot.generated_at;
-  } catch {
-    // 没有本地 JSON 时仍展示空态
-  }
+  const session = await auth();
+  const result = await listBounties({
+    page: 1,
+    pageSize: 40,
+    sort: "match",
+    userId: session?.user?.id ?? null,
+  });
 
   return (
     <main>
@@ -21,18 +21,23 @@ export default async function MatchPage() {
           智能<span>匹配</span>
         </h1>
         <p className="lede">
-          基于项目画像与结算说明，帮你判断「适不适合我、钱怎么结、怎么上手」。
-          可与悬赏大厅的多源任务互补使用。
+          与机会大厅共用同一批任务，按你的技能与目标排序，并给出结算与上手建议。
         </p>
       </header>
-      {projects.length > 0 ? (
-        <MatchWorkspace projects={projects} generatedAt={generatedAt} />
+      {result.items.length > 0 ? (
+        <MatchWorkspace initialItems={result.items} fetchedAt={new Date().toISOString()} />
       ) : (
         <div className="panel human-empty">
-          <strong>还没有本地追踪快照</strong>
-          <p>
-            在仓库根目录运行 <code>opentacker run --all</code>，或先去悬赏大厅同步多源任务。
-          </p>
+          <strong>还没有可匹配的机会</strong>
+          <p>去机会大厅同步外部源，或先发布一条协作机会。</p>
+          <div className="detail-cta-stack" style={{ justifyContent: "flex-start" }}>
+            <Link href="/" className="btn primary">
+              去机会大厅
+            </Link>
+            <Link href="/publish" className="btn ghost">
+              发布机会
+            </Link>
+          </div>
         </div>
       )}
     </main>

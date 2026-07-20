@@ -276,12 +276,14 @@ export function DashboardClient() {
           <div>
             <h2>你好，{me.name || me.email}</h2>
             <p className="hint">
-              信誉 {me.reputation} · 自报收益 {formatUsdCents(me.earnedTotalCents)} ·{" "}
-              <Link href={`/u/${me.id}`}>公开主页 ↗</Link>
+              信誉 {me.reputation} · 自报收益 {formatUsdCents(me.earnedTotalCents)}
             </p>
           </div>
           <div className="hall-actions">
-            <button type="button" className="btn gold" disabled={syncing} onClick={() => sync()}>
+            <Link href={`/u/${me.id}`} className="btn gold profile-jump">
+              公开主页 ↗
+            </Link>
+            <button type="button" className="btn ghost" disabled={syncing} onClick={() => sync()}>
               {syncing ? "同步中…" : "同步外部数据源"}
             </button>
             <Link href="/community" className="btn primary">

@@ -210,7 +210,6 @@ export async function POST(req: Request) {
     if (data.engagementType === "employment") tags.push("雇佣机会");
 
     const externalId = `ugc_${user.id.slice(0, 8)}_${fp}_${Date.now().toString(36)}`;
-    const profileUrl = `/u/${user.id}`;
     const expiresAt = new Date(Date.now() + data.expireDays * 24 * 60 * 60 * 1000);
 
     const task = await prisma.bountyTask.create({
@@ -218,7 +217,7 @@ export async function POST(req: Request) {
         sourceId: source.id,
         externalId,
         title: data.title.trim(),
-        url: url || profileUrl,
+        url: url || "pending",
         projectName: (data.projectName || user.name || "个人 OPC").trim(),
         amountText: data.amountText?.trim() || null,
         amountMin: data.amountMin ?? null,
@@ -248,15 +247,27 @@ export async function POST(req: Request) {
       },
     });
 
+    const detailUrl = `/opportunity/${task.id}`;
+    const finalTask =
+      !url
+        ? await prisma.bountyTask.update({
+            where: { id: task.id },
+            data: { url: detailUrl },
+            include: {
+              publisher: { select: { id: true, name: true, headline: true } },
+            },
+          })
+        : task;
+
     await prisma.activity.create({
       data: {
         userId: user.id,
-        taskId: task.id,
+        taskId: finalTask.id,
         type: "shared",
         message:
           moderationStatus === "approved"
-            ? `发布了机会：${task.title}`
-            : `提交了机会待审：${task.title}`,
+            ? `发布了机会：${finalTask.title}`
+            : `提交了机会待审：${finalTask.title}`,
       },
     });
 
@@ -268,8 +279,8 @@ export async function POST(req: Request) {
           ? "已发布到大厅"
           : "已提交，新账号需审核通过后才会公开显示",
       item: {
-        ...publicTask(task),
-        contactValue: task.contactValue,
+        ...publicTask(finalTask),
+        contactValue: finalTask.contactValue,
       },
     });
   } catch (e) {

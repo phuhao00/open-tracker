@@ -1501,6 +1501,12 @@ textarea {
   background: rgba(21, 94, 239, 0.14);
 }
 
+.profile-jump {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -2725,4 +2731,113 @@ textarea {
   100% {
     background-position: -100% 0;
   }
+}
+
+/* Opportunity detail + report dialog */
+.opportunity-detail {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.opportunity-detail h1 {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1.25;
+}
+
+.opportunity-detail h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.opportunity-detail .detail-body p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.opportunity-actions {
+  margin-top: 0.5rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.coach-block {
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-soft, rgba(15, 23, 32, 0.03));
+}
+
+.coach-block strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.coach-block p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.claim-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.claim-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.report-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+}
+
+.report-reason {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.report-reason.active {
+  border-color: var(--accent);
+  background: var(--accent-soft, rgba(37, 99, 235, 0.08));
+}
+
+.report-reason input {
+  margin: 0;
+}
+
+.detail-publisher {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.match-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.detail-summary {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }

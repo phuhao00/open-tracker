@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PaginationBar } from "@/components/PaginationBar";
+import { ReportDialog } from "@/components/ReportDialog";
 import type { BountiesListResult, BountyListItem } from "@/lib/bounties-list";
 import { KIND_LABEL, SOURCE_LABEL } from "@/lib/source-labels";
 import {
@@ -24,8 +25,13 @@ type SourceFacet = { key: string; name: string; count: number };
 
 const PAGE_SIZE = 10;
 
+function isExternalUrl(url: string) {
+  return /^https?:\/\//i.test(url);
+}
+
 export function BountyHall({ initialData }: { initialData?: BountiesListResult | null }) {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
+  const isModerator = Boolean(session?.user?.isModerator);
   const listRef = useRef<HTMLDivElement>(null);
   const bootSynced = useRef(false);
   const [items, setItems] = useState<BountyItem[]>(initialData?.items ?? []);
@@ -53,6 +59,7 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [fadeKey, setFadeKey] = useState(0);
+  const [reportTaskId, setReportTaskId] = useState<string | null>(null);
 
   const applyResult = useCallback((data: BountiesListResult, fallbackPage: number) => {
     setItems(data.items || []);
@@ -108,9 +115,18 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
       params.set("page", String(next.page));
       params.set("limit", String(PAGE_SIZE));
 
-      const res = await fetch(`/api/bounties?${params.toString()}`);
-      const data = (await res.json()) as BountiesListResult;
-      applyResult(data, next.page);
+      try {
+        const res = await fetch(`/api/bounties?${params.toString()}`);
+        const data = (await res.json()) as BountiesListResult & { error?: string };
+        if (!res.ok) {
+          setMessage(data.error || "加载机会失败，请稍后重试");
+          setLoading(false);
+          return;
+        }
+        applyResult(data, next.page);
+      } catch {
+        setMessage("网络异常，机会列表加载失败");
+      }
       setLoading(false);
 
       if (opts?.scroll) {
@@ -186,20 +202,12 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
     await load({ page: 1 });
   }
 
-  async function reportTask(taskId: string) {
+  function reportTask(taskId: string) {
     if (status !== "authenticated") {
       setMessage("登录后才能举报");
       return;
     }
-    const reason = window.prompt("举报原因：spam / illegal / misleading / scam / other", "spam");
-    if (!reason) return;
-    const res = await fetch("/api/opportunities/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ taskId, reason }),
-    });
-    const data = await res.json();
-    setMessage(res.ok ? data.message || "已举报" : data.error || "举报失败");
+    setReportTaskId(taskId);
   }
 
   async function saveTask(taskId: string) {
@@ -360,9 +368,11 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
           <Link href="/publish" className="btn gold">
             发布机会
           </Link>
-          <button type="button" className="btn ghost" onClick={syncAll} disabled={syncing}>
-            {syncing ? "同步中…" : "同步外部源"}
-          </button>
+          {isModerator && (
+            <button type="button" className="btn ghost" onClick={syncAll} disabled={syncing}>
+              {syncing ? "同步中…" : "同步外部源"}
+            </button>
+          )}
           {status !== "authenticated" ? (
             <Link href="/register" className="btn primary">
               加入协作网络
@@ -610,10 +620,35 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
                   <div className="skeleton-line short" />
                 </div>
               )}
-              {!loading && items.length === 0 && (
+              {!loading && items.length === 0 && total === 0 && (
+                <div className="panel human-empty">
+                  <strong>大厅还是空的</strong>
+                  <p>
+                    可以先发布一条协作机会
+                    {isModerator ? "，或同步外部招聘/悬赏源" : "，或等待系统收录"}
+                    。完善技能后排序会更准。
+                  </p>
+                  <div className="detail-cta-stack" style={{ justifyContent: "flex-start" }}>
+                    <Link href="/publish" className="btn gold">
+                      发布机会
+                    </Link>
+                    {status !== "authenticated" && (
+                      <Link href="/register" className="btn primary">
+                        免费注册
+                      </Link>
+                    )}
+                    {isModerator && (
+                      <button type="button" className="btn ghost" onClick={syncAll} disabled={syncing}>
+                        {syncing ? "同步中…" : "同步外部源"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {!loading && items.length === 0 && total > 0 && (
                 <div className="panel human-empty">
                   <strong>没有符合当前分类的结果</strong>
-                  <p>试试切换大类，或清除侧栏筛选项。也可同步最新机会后再看。</p>
+                  <p>试试切换大类，或清除侧栏筛选项。</p>
                   <button type="button" className="btn primary" onClick={resetFilters}>
                     查看全部机会
                   </button>
@@ -698,18 +733,26 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
                         {busyId === item.id ? "处理中…" : "我想接这单"}
                       </button>
                     )}
-                    <a
-                      className="btn primary"
-                      href={item.url.startsWith("/") ? item.url : item.url}
-                      target={item.url.startsWith("/") ? undefined : "_blank"}
-                      rel={item.url.startsWith("/") ? undefined : "noreferrer"}
-                    >
-                      {item.kind === "portal"
-                        ? "进入招聘入口 ↗"
-                        : item.source.key === "community"
-                          ? "查看详情"
-                          : "打开详情 ↗"}
-                    </a>
+                    {item.kind !== "portal" ? (
+                      <Link className="btn primary" href={`/opportunity/${item.id}`}>
+                        查看详情
+                      </Link>
+                    ) : null}
+                    {isExternalUrl(item.url) && (
+                      <a
+                        className={item.kind === "portal" ? "btn primary" : "btn ghost"}
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {item.kind === "portal" ? "进入招聘入口 ↗" : "打开源站 ↗"}
+                      </a>
+                    )}
+                    {!isExternalUrl(item.url) && item.kind === "portal" && (
+                      <Link className="btn primary" href={`/opportunity/${item.id}`}>
+                        查看详情
+                      </Link>
+                    )}
                     <button
                       type="button"
                       className="btn ghost"
@@ -747,6 +790,13 @@ export function BountyHall({ initialData }: { initialData?: BountiesListResult |
           </div>
         </div>
       </div>
+
+      <ReportDialog
+        open={Boolean(reportTaskId)}
+        taskId={reportTaskId}
+        onClose={() => setReportTaskId(null)}
+        onDone={(msg) => setMessage(msg)}
+      />
     </section>
   );
 }

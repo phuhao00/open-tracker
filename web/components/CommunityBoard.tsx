@@ -68,24 +68,38 @@ export function CommunityBoard() {
       claimsPage: String(cPage),
       claimsLimit: "6",
     });
-    const res = await fetch(`/api/community?${params}`);
-    const body = await res.json();
-    setData({
-      ...body,
-      pagination: body.pagination || emptyPagination,
-    });
-    setLoading(false);
-  }, [activityPage, claimsPage]);
-
-  useEffect(() => {
-    load(1, 1).catch(() =>
+    try {
+      const res = await fetch(`/api/community?${params}`);
+      const body = await res.json();
+      if (!res.ok) {
+        setMsg(body.error || "社区加载失败");
+        setData((prev) => prev ?? {
+          activities: [],
+          activeClaims: [],
+          freelancers: [],
+          pagination: emptyPagination,
+        });
+        setLoading(false);
+        return;
+      }
       setData({
+        ...body,
+        pagination: body.pagination || emptyPagination,
+      });
+    } catch {
+      setMsg("网络异常，社区加载失败");
+      setData((prev) => prev ?? {
         activities: [],
         activeClaims: [],
         freelancers: [],
         pagination: emptyPagination,
-      }),
-    );
+      });
+    }
+    setLoading(false);
+  }, [activityPage, claimsPage]);
+
+  useEffect(() => {
+    load(1, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -153,9 +167,9 @@ export function CommunityBoard() {
                 <h4>{c.task.title}</h4>
                 <p className="muted">{c.task.projectName}</p>
               </div>
-              <a className="btn ghost" href={c.task.url} target="_blank" rel="noreferrer">
-                看任务 ↗
-              </a>
+              <Link className="btn ghost" href={`/opportunity/${c.task.id}`}>
+                看任务
+              </Link>
             </article>
           ))}
         </div>
@@ -215,10 +229,10 @@ export function CommunityBoard() {
                 </span>
               </div>
               <p>{a.message}</p>
-              {a.task?.url && (
-                <a href={a.task.url} target="_blank" rel="noreferrer" className="muted">
-                  {a.task.title.slice(0, 60)} ↗
-                </a>
+              {a.task && (
+                <Link href={`/opportunity/${a.task.id}`} className="muted">
+                  {a.task.title.slice(0, 60)} →
+                </Link>
               )}
             </div>
           ))}
@@ -240,25 +254,47 @@ export function CommunityBoard() {
       <section className="panel">
         <h2>灵活就业伙伴</h2>
         <p className="hint">按信誉排序，公开主页方便互相认识、组队或转介任务。</p>
-        <div className="people-grid">
-          {data.freelancers.map((u) => (
-            <Link key={u.id} href={`/u/${u.id}`} className="person-card">
-              <strong>{u.name || "未命名伙伴"}</strong>
-              <span className="muted">{u.headline || "灵活就业 · 开源悬赏"}</span>
-              <div className="pick-tags">
-                {u.skills.slice(0, 4).map((s) => (
-                  <span key={s} className="mini-tag">
-                    {s}
-                  </span>
-                ))}
-              </div>
-              <div className="person-meta">
-                <span>信誉 {u.reputation}</span>
-                <span>认领 {u._count.claims}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {data.freelancers.length === 0 ? (
+          <div className="human-empty" style={{ marginTop: "0.8rem" }}>
+            <strong>伙伴墙还是空的</strong>
+            <p>
+              {status === "authenticated"
+                ? "去工作台完善公开主页与技能，就会出现在这里。"
+                : "注册并完善公开主页后，会出现在伙伴墙。"}
+            </p>
+            <div className="detail-cta-stack" style={{ justifyContent: "flex-start" }}>
+              {status === "authenticated" ? (
+                <Link href="/dashboard" className="btn primary">
+                  完善工作台
+                </Link>
+              ) : (
+                <Link href="/register" className="btn primary">
+                  免费注册
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="people-grid">
+            {data.freelancers.map((u) => (
+              <Link key={u.id} href={`/u/${u.id}`} className="person-card">
+                <strong>{u.name || "未命名伙伴"}</strong>
+                <span className="muted">{u.headline || "灵活就业 · 开源悬赏"}</span>
+                <div className="pick-tags">
+                  {u.skills.slice(0, 4).map((s) => (
+                    <span key={s} className="mini-tag">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <div className="person-meta">
+                  <span>信誉 {u.reputation}</span>
+                  <span>认领 {u._count.claims}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

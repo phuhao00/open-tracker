@@ -4,6 +4,7 @@ import { compare } from "bcryptjs";
 import { cache } from "react";
 import { z } from "zod";
 import { prisma } from "./prisma";
+import { isModerator } from "./opportunity-policy";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -35,6 +36,7 @@ const nextAuth = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name ?? user.email.split("@")[0],
+          role: user.role,
         };
       },
     }),
@@ -45,6 +47,7 @@ const nextAuth = NextAuth({
         token.sub = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.role = user.role ?? "user";
       }
       return token;
     },
@@ -53,6 +56,11 @@ const nextAuth = NextAuth({
         session.user.id = token.sub ?? "";
         session.user.email = token.email as string;
         session.user.name = token.name as string;
+        session.user.role = (token.role as string) || "user";
+        session.user.isModerator = isModerator({
+          role: session.user.role,
+          email: session.user.email,
+        });
       }
       return session;
     },

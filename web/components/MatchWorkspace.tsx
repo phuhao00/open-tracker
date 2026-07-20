@@ -1,39 +1,43 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import {
-  allSkillOptions,
-  clarityLabel,
-  enrichProjects,
-  extractTaskAmount,
-  type EnrichedProject,
-} from "@/lib/enrich";
-import { KIND_COLORS } from "@/lib/colors";
-import type { Opportunity, ProjectRecord } from "@/lib/types";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import type { BountyListItem } from "@/lib/bounties-list";
+import { scoreTaskForUser } from "@/lib/matching";
+import { KIND_LABEL, SOURCE_LABEL } from "@/lib/source-labels";
+import { clarityLabel, coachTipsForTask } from "@/lib/task-coach";
 
 const DEFAULT_SKILLS = ["TypeScript", "React", "JavaScript"];
 const STORAGE_KEY = "opentacker.prefs.v1";
 
-type GoalId = "quick" | "clear" | "big" | "learn";
-
-const GOALS: Array<{
-  id: GoalId;
-  title: string;
-  desc: string;
-}> = [
-  { id: "quick", title: "想快点接到单", desc: "优先有现成任务、金额写在标题上的项目" },
-  { id: "clear", title: "结算要清楚", desc: "只看付款路径明确、不容易白干的项目" },
-  { id: "big", title: "想冲大额", desc: "偏向 $1000+ 或高单价 bounty，接受更高门槛" },
-  { id: "learn", title: "先练手涨经验", desc: "小额 / 入门友好，建立信誉再冲大单" },
+const SKILL_OPTIONS = [
+  "TypeScript",
+  "JavaScript",
+  "React",
+  "Nextjs",
+  "Python",
+  "Go",
+  "Rust",
+  "Flutter",
+  "Java",
+  "C++",
 ];
 
-type Prefs = {
-  skills: string[];
-  goal: GoalId;
-  shortlist: string[];
-};
+type GoalId = "quick" | "clear" | "big" | "learn";
 
-function loadPrefs(fallbackSkills: string[]): Prefs {
+const GOALS: Array<{ id: GoalId; title: string; desc: string }> = [
+  { id: "quick", title: "想快点接到单", desc: "优先悬赏与兼职，上手快" },
+  { id: "clear", title: "结算要清楚", desc: "偏向有金额说明、路径清晰的机会" },
+  { id: "big", title: "想冲大额", desc: "偏向高金额悬赏或高薪岗位" },
+  { id: "learn", title: "先练手涨经验", desc: "小额 / 入门友好，建立信誉" },
+];
+
+type Prefs = { skills: string[]; goal: GoalId; shortlist: string[] };
+
+type ScoredItem = BountyListItem & { localScore: number; localReasons: string[] };
+
+function loadLocalPrefs(fallbackSkills: string[]): Prefs {
   if (typeof window === "undefined") {
     return { skills: fallbackSkills, goal: "quick", shortlist: [] };
   }
@@ -51,41 +55,66 @@ function loadPrefs(fallbackSkills: string[]): Prefs {
   }
 }
 
-export function MatchWorkspace({
-  projects,
-  generatedAt,
-}: {
-  projects: ProjectRecord[];
-  generatedAt: string;
-}) {
-  const skillOptions = useMemo(() => allSkillOptions(projects), [projects]);
-  const defaults = DEFAULT_SKILLS.filter((s) =>
-    skillOptions.some((o) => o.toLowerCase() === s.toLowerCase()),
-  );
+function isExternalUrl(url: string) {
+  return /^https?:\/\//i.test(url);
+}
 
-  const [skills, setSkills] = useState<string[]>(defaults);
+export function MatchWorkspace({
+  initialItems,
+  fetchedAt,
+}: {
+  initialItems: BountyListItem[];
+  fetchedAt: string;
+}) {
+  const { status } = useSession();
+  const [skills, setSkills] = useState<string[]>(DEFAULT_SKILLS);
   const [goal, setGoal] = useState<GoalId>("quick");
   const [shortlist, setShortlist] = useState<string[]>([]);
-  const [onlyWithTasks, setOnlyWithTasks] = useState(true);
   const [query, setQuery] = useState("");
-  const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [pendingTask, setPendingTask] = useState<{
-    project: EnrichedProject;
-    task: Opportunity;
-  } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [prefsSource, setPrefsSource] = useState<"local" | "account">("local");
   const [, startTransition] = useTransition();
   const detailRef = useRef<HTMLElement>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const prefs = loadPrefs(defaults);
-    setSkills(prefs.skills);
-    setGoal(prefs.goal);
-    setShortlist(prefs.shortlist);
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    let cancelled = false;
+    async function boot() {
+      if (status === "authenticated") {
+        try {
+          const res = await fetch("/api/me");
+          if (res.ok) {
+            const me = await res.json();
+            if (cancelled) return;
+            const meSkills = Array.isArray(me.skills) ? me.skills.map(String) : [];
+            setSkills(meSkills.length ? meSkills : DEFAULT_SKILLS);
+            setGoal((me.goal as GoalId) || "quick");
+            setPrefsSource("account");
+            const local = loadLocalPrefs(DEFAULT_SKILLS);
+            setShortlist(local.shortlist);
+            setHydrated(true);
+            return;
+          }
+        } catch {
+          /* fall through to local */
+        }
+      }
+      if (status === "loading") return;
+      const prefs = loadLocalPrefs(DEFAULT_SKILLS);
+      if (cancelled) return;
+      setSkills(prefs.skills);
+      setGoal(prefs.goal);
+      setShortlist(prefs.shortlist);
+      setPrefsSource("local");
+      setHydrated(true);
+    }
+    boot();
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -96,73 +125,70 @@ export function MatchWorkspace({
   }, [skills, goal, shortlist, hydrated]);
 
   useEffect(() => {
+    if (!hydrated || prefsSource !== "account" || status !== "authenticated") return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skills, goal }),
+      }).catch(() => undefined);
+    }, 600);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [skills, goal, hydrated, prefsSource, status]);
+
+  useEffect(() => {
     if (!toast) return;
     const t = window.setTimeout(() => setToast(null), 2600);
     return () => window.clearTimeout(t);
   }, [toast]);
 
-  useEffect(() => {
-    if (!pendingTask) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPendingTask(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [pendingTask]);
-
-  const enriched = useMemo(() => enrichProjects(projects, skills), [projects, skills]);
+  const scored = useMemo((): ScoredItem[] => {
+    return initialItems.map((item) => {
+      const { score, reasons } = scoreTaskForUser({
+        skills,
+        goal,
+        techTags: item.techTags,
+        title: item.title,
+        summary: item.summary,
+        amountText: item.amountText,
+        amountMax: item.amountMax,
+        kind: item.kind,
+        activeClaims: item.activeClaims?.length ?? 0,
+      });
+      return { ...item, localScore: score, localReasons: reasons };
+    });
+  }, [initialItems, skills, goal]);
 
   const filtered = useMemo(() => {
-    let list = enriched.filter((p) => {
-      if (onlyWithTasks && p.opportunities.length === 0) return false;
-      if (skills.length && p.matchedSkills.length === 0) return false;
+    let list = scored.filter((item) => {
       if (query.trim()) {
         const q = query.toLowerCase();
-        const blob = `${p.name} ${p.description} ${p.profile?.summaryZh ?? ""} ${p.tech.join(" ")}`.toLowerCase();
+        const blob = `${item.title} ${item.projectName} ${item.summary || ""} ${item.techTags.join(" ")}`.toLowerCase();
         if (!blob.includes(q)) return false;
       }
-      if (goal === "clear" && p.profile?.settlement.clarity !== "clear") return false;
-      if (goal === "big") {
-        const amount = `${p.amountHint} ${p.payment}`.toLowerCase();
-        const looksBig =
-          /2,?000|2340|1,?000|500\s*per\s*month|\$500/i.test(amount) ||
-          p.profile?.difficulty === "较难";
-        if (!looksBig) return false;
-      }
-      if (goal === "learn") {
-        const easy =
-          p.profile?.difficulty === "入门" ||
-          p.opportunities.some((o) => o.kind === "good_first") ||
-          /\$\s*80|\$\s*30|\$\s*50/i.test(p.amountHint);
-        if (!easy && p.profile?.settlement.clarity !== "clear") return false;
+      if (skills.length) {
+        const hay = `${item.title} ${item.summary || ""} ${item.techTags.join(" ")}`.toLowerCase();
+        const hit = skills.some((s) => hay.includes(s.toLowerCase()));
+        // 无技能命中时保留综合分尚可的项，避免列表被筛空
+        if (!hit) return item.localScore >= 28;
       }
       return true;
     });
-
-    if (goal === "quick") {
-      list = [...list].sort(
-        (a, b) =>
-          b.bountyCount - a.bountyCount ||
-          b.matchScore - a.matchScore ||
-          b.opportunities.length - a.opportunities.length,
-      );
-    }
+    list = [...list].sort((a, b) => b.localScore - a.localScore);
     return list;
-  }, [enriched, onlyWithTasks, skills, query, goal]);
+  }, [scored, query, skills]);
 
   const selected =
-    filtered.find((p) => p.name === selectedName) ??
-    filtered[0] ??
-    null;
+    filtered.find((i) => i.id === selectedId) ?? filtered[0] ?? null;
 
-  const step = !skills.length ? 1 : !selected ? 2 : pendingTask ? 4 : 3;
-
-  const coach = useMemo(() => buildCoach({ skills, goal, filtered, selected }), [
-    skills,
-    goal,
-    filtered,
-    selected,
-  ]);
+  const step = !skills.length ? 1 : !selected ? 2 : 3;
+  const coach = useMemo(
+    () => buildCoach({ skills, goal, filtered, selected }),
+    [skills, goal, filtered, selected],
+  );
 
   function toggleSkill(skill: string) {
     startTransition(() => {
@@ -172,28 +198,46 @@ export function MatchWorkspace({
           : [...prev, skill];
         return next;
       });
-      setSelectedName(null);
+      setSelectedId(null);
     });
   }
 
-  function selectProject(name: string) {
-    setSelectedName(name);
-    setToast(`已选中 ${name}，右侧可以看结算和任务`);
+  function selectTask(id: string) {
+    setSelectedId(id);
+    const item = scored.find((i) => i.id === id);
+    if (item) setToast(`已选中 ${item.projectName}`);
     window.requestAnimationFrame(() => {
       detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
   }
 
-  function toggleShortlist(name: string) {
+  function toggleShortlist(id: string) {
     setShortlist((prev) => {
-      const exists = prev.includes(name);
-      const next = exists ? prev.filter((n) => n !== name) : [...prev, name];
-      setToast(exists ? `已从短名单移除 ${name}` : `已加入短名单：${name}`);
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((n) => n !== id) : [...prev, id];
+      setToast(exists ? "已从短名单移除" : "已加入短名单");
       return next;
     });
   }
 
-  const shortlistedProjects = enriched.filter((p) => shortlist.includes(p.name));
+  const shortlistedItems = scored.filter((i) => shortlist.includes(i.id));
+
+  if (!initialItems.length) {
+    return (
+      <div className="panel human-empty">
+        <strong>大厅里还没有可匹配的机会</strong>
+        <p>先去机会大厅同步外部源，或自行发布一条协作机会。</p>
+        <div className="detail-cta-stack" style={{ justifyContent: "flex-start" }}>
+          <Link href="/" className="btn primary">
+            去机会大厅
+          </Link>
+          <Link href="/publish" className="btn ghost">
+            发布机会
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace">
@@ -202,17 +246,11 @@ export function MatchWorkspace({
       <section className={`coach panel ${coach.tone}`}>
         <div className="coach-label">给你的建议</div>
         <p className="coach-text">{coach.text}</p>
-        {coach.actionLabel && (
+        {coach.actionLabel && coach.actionId && (
           <button
             type="button"
             className="btn gold coach-action"
-            onClick={() => {
-              if (coach.actionKind === "claim" && selected?.topTasks[0]) {
-                setPendingTask({ project: selected, task: selected.topTasks[0] });
-                return;
-              }
-              if (coach.actionProject) selectProject(coach.actionProject);
-            }}
+            onClick={() => selectTask(coach.actionId!)}
           >
             {coach.actionLabel}
           </button>
@@ -223,9 +261,12 @@ export function MatchWorkspace({
         <div className="matcher-head">
           <div>
             <h2>你现在最想怎样赚钱？</h2>
-            <p className="hint">先选一个目标，我会帮你把不合适的项目先藏起来。</p>
+            <p className="hint">
+              目标与技能与工作台共用
+              {prefsSource === "account" ? "（已登录，会自动保存）" : "（游客保存在本机）"}。
+            </p>
           </div>
-          <div className="matcher-meta">更新于 {formatTime(generatedAt)}</div>
+          <div className="matcher-meta">数据更新于 {formatTime(fetchedAt)}</div>
         </div>
 
         <div className="goal-grid">
@@ -247,7 +288,7 @@ export function MatchWorkspace({
 
         <div className="section-label">你的技能（可多选）</div>
         <div className="skill-cloud">
-          {skillOptions.map((skill) => {
+          {SKILL_OPTIONS.map((skill) => {
             const active = skills.some((s) => s.toLowerCase() === skill.toLowerCase());
             return (
               <button
@@ -268,7 +309,7 @@ export function MatchWorkspace({
               className="skill-chip ghost"
               onClick={() => {
                 setSkills([]);
-                setToast("已显示全部项目");
+                setToast("已显示更广的机会");
               }}
             >
               先不限技能
@@ -280,35 +321,27 @@ export function MatchWorkspace({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜项目名，比如 Expensify…"
-            aria-label="搜索项目"
+            placeholder="搜职位、项目、技能…"
+            aria-label="搜索机会"
           />
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={onlyWithTasks}
-              onChange={(e) => setOnlyWithTasks(e.target.checked)}
-            />
-            只看现在有任务的
-          </label>
         </div>
       </section>
 
-      {shortlistedProjects.length > 0 && (
+      {shortlistedItems.length > 0 && (
         <section className="shortlist-bar panel">
           <div>
             <strong>我的短名单</strong>
             <span className="muted"> · 先收藏，回头再接</span>
           </div>
           <div className="shortlist-chips">
-            {shortlistedProjects.map((p) => (
+            {shortlistedItems.map((item) => (
               <button
-                key={p.name}
+                key={item.id}
                 type="button"
                 className="skill-chip active"
-                onClick={() => selectProject(p.name)}
+                onClick={() => selectTask(item.id)}
               >
-                {p.name}
+                {item.projectName}
               </button>
             ))}
           </div>
@@ -316,25 +349,22 @@ export function MatchWorkspace({
       )}
 
       <div className="split">
-        <section className="project-rail" aria-label="匹配项目列表">
+        <section className="project-rail" aria-label="匹配机会列表">
           <div className="rail-title-row">
-            <h2 className="rail-title">为你筛出的项目</h2>
-            <span className="rail-count">
-              {filtered.length} 个合适
-            </span>
+            <h2 className="rail-title">为你筛出的机会</h2>
+            <span className="rail-count">{filtered.length} 个合适</span>
           </div>
 
           {filtered.length === 0 && (
             <div className="empty panel human-empty">
               <strong>这组条件有点严。</strong>
-              <p>试试换个目标，或点「先不限技能」。你也可以先看结算清晰的 Expensify / tscircuit。</p>
+              <p>试试换个目标，或点「先不限技能」。</p>
               <button
                 type="button"
                 className="btn primary"
                 onClick={() => {
                   setGoal("quick");
-                  setSkills(defaults);
-                  setOnlyWithTasks(true);
+                  setSkills(DEFAULT_SKILLS);
                   setQuery("");
                 }}
               >
@@ -343,68 +373,59 @@ export function MatchWorkspace({
             </div>
           )}
 
-          {filtered.map((p, index) => (
-            <ProjectPickCard
-              key={p.name}
-              project={p}
+          {filtered.map((item, index) => (
+            <TaskPickCard
+              key={item.id}
+              item={item}
               rank={index + 1}
-              active={selected?.name === p.name}
-              bookmarked={shortlist.includes(p.name)}
-              why={whyRecommended(p, goal, skills)}
-              onSelect={() => selectProject(p.name)}
-              onBookmark={() => toggleShortlist(p.name)}
+              active={selected?.id === item.id}
+              bookmarked={shortlist.includes(item.id)}
+              onSelect={() => selectTask(item.id)}
+              onBookmark={() => toggleShortlist(item.id)}
             />
           ))}
         </section>
 
         <section className="detail-pane" ref={detailRef}>
           {selected ? (
-            <ProjectDetail
-              project={selected}
-              bookmarked={shortlist.includes(selected.name)}
-              onBookmark={() => toggleShortlist(selected.name)}
-              onClaimTask={(task) => setPendingTask({ project: selected, task })}
+            <TaskDetail
+              item={selected}
+              bookmarked={shortlist.includes(selected.id)}
+              onBookmark={() => toggleShortlist(selected.id)}
             />
           ) : (
             <div className="empty panel human-empty">
-              <strong>还没选项目</strong>
-              <p>左边点一下卡片，我就会把「做什么、怎么结算、怎么接」摊开给你看。</p>
+              <strong>还没选机会</strong>
+              <p>左边点一下卡片，我会把适合度、结算提示和行动按钮摊开。</p>
             </div>
           )}
         </section>
       </div>
 
-      {selected && selected.topTasks[0] && !pendingTask && (
+      {selected && (
         <div className="sticky-cta" role="region" aria-label="下一步行动">
           <div>
             <strong>下一步建议</strong>
             <p>
-              先看清 {selected.name} 的结算规则，再去接：
-              <em> {selected.topTasks[0].title.slice(0, 42)}
-              {selected.topTasks[0].title.length > 42 ? "…" : ""}</em>
+              先看清详情，再决定是否认领：
+              <em>
+                {" "}
+                {selected.title.slice(0, 42)}
+                {selected.title.length > 42 ? "…" : ""}
+              </em>
             </p>
           </div>
-          <button
-            type="button"
-            className="btn gold"
-            onClick={() =>
-              setPendingTask({ project: selected, task: selected.topTasks[0] })
-            }
-          >
-            准备去接最高分任务
-          </button>
+          <Link href={`/opportunity/${selected.id}`} className="btn gold">
+            打开机会详情
+          </Link>
         </div>
       )}
 
-      {pendingTask && (
-        <ClaimSheet
-          project={pendingTask.project}
-          task={pendingTask.task}
-          onClose={() => setPendingTask(null)}
-        />
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
       )}
-
-      {toast && <div className="toast" role="status">{toast}</div>}
     </div>
   );
 }
@@ -412,9 +433,8 @@ export function MatchWorkspace({
 function JourneyBar({ step }: { step: number }) {
   const items = [
     { n: 1, label: "定目标/技能" },
-    { n: 2, label: "挑项目" },
-    { n: 3, label: "看结算" },
-    { n: 4, label: "去接任务" },
+    { n: 2, label: "挑机会" },
+    { n: 3, label: "看详情去接" },
   ];
   return (
     <ol className="journey">
@@ -428,421 +448,176 @@ function JourneyBar({ step }: { step: number }) {
   );
 }
 
-function ProjectPickCard({
-  project,
+function TaskPickCard({
+  item,
   rank,
   active,
   bookmarked,
-  why,
   onSelect,
   onBookmark,
 }: {
-  project: EnrichedProject;
+  item: ScoredItem;
   rank: number;
   active: boolean;
   bookmarked: boolean;
-  why: string;
   onSelect: () => void;
   onBookmark: () => void;
 }) {
-  const clarity = project.profile
-    ? clarityLabel(project.profile.settlement.clarity)
-    : { text: "待补充", tone: "warn" as const };
-
+  const tips = coachTipsForTask(item);
+  const clarity = clarityLabel(tips.clarity);
   return (
-    <div className={`pick-card ${active ? "active" : ""} ${rank === 1 ? "top-pick" : ""}`}>
+    <article className={`pick-card ${active ? "active" : ""} ${rank === 1 ? "best" : ""}`}>
       <button type="button" className="pick-main" onClick={onSelect}>
         <div className="pick-top">
-          <div className="pick-title-row">
-            {rank === 1 && <span className="reco-badge">最推荐</span>}
-            <strong>{project.name}</strong>
-          </div>
-          <span className={`tone ${clarity.tone}`}>{clarity.text}</span>
+          <span className="rank-badge">#{rank}</span>
+          <span className="mini-tag">{KIND_LABEL[item.kind] || item.kind}</span>
+          <span className={`clarity-pill ${clarity.tone}`}>{clarity.text}</span>
+          <span className="match-score">{item.localScore} 分</span>
         </div>
-        <p className="pick-summary">{project.profile?.summaryZh ?? project.description}</p>
-        <p className="why-line">{why}</p>
-        <div className="pick-tags">
-          {(project.matchedSkills.length ? project.matchedSkills : project.tech.slice(0, 3)).map(
-            (t) => (
-              <span key={t} className="mini-tag">
-                {t}
-              </span>
-            ),
-          )}
-        </div>
-        <div className="pick-foot">
-          <span className="gold-text">{project.amountHint}</span>
-          <span>
-            {project.bountyCount} 奖金 · {project.opportunities.length} 任务
-          </span>
-        </div>
+        <h3>{item.title}</h3>
+        <p className="muted">
+          {item.projectName}
+          {item.amountText ? ` · ${item.amountText}` : ""}
+        </p>
+        <p className="why-line">{item.localReasons[0] || "综合适合度较高"}</p>
       </button>
       <button
         type="button"
-        className={`bookmark ${bookmarked ? "on" : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onBookmark();
-        }}
+        className={`bookmark-btn ${bookmarked ? "on" : ""}`}
         aria-label={bookmarked ? "移出短名单" : "加入短名单"}
-        title={bookmarked ? "移出短名单" : "先收藏，稍后再看"}
+        onClick={onBookmark}
       >
         {bookmarked ? "★" : "☆"}
       </button>
-    </div>
+    </article>
   );
 }
 
-function ProjectDetail({
-  project,
+function TaskDetail({
+  item,
   bookmarked,
   onBookmark,
-  onClaimTask,
 }: {
-  project: EnrichedProject;
+  item: ScoredItem;
   bookmarked: boolean;
   onBookmark: () => void;
-  onClaimTask: (task: Opportunity) => void;
 }) {
-  const profile = project.profile;
-  const settlement = profile?.settlement;
-  const clarity = settlement
-    ? clarityLabel(settlement.clarity)
-    : { text: "待补充", tone: "warn" as const };
-  const primaryTask = project.topTasks[0];
-  const primaryAmount = primaryTask
-    ? extractTaskAmount(primaryTask.title, project.amountHint)
-    : project.amountHint;
+  const tips = coachTipsForTask(item);
+  const clarity = clarityLabel(tips.clarity);
+  const external = isExternalUrl(item.url);
 
   return (
-    <div className="detail panel detail-enter" key={project.name}>
-      <div className="detail-hero">
+    <div className="panel detail-enter">
+      <div className="detail-head">
         <div>
-          <div className="eyebrow">{profile?.category ?? "付费开源项目"}</div>
-          <h2>{project.name}</h2>
-          <p className="detail-summary">{profile?.summaryZh ?? project.description}</p>
-          <p className="human-line">
-            用人话讲：{humanOneLiner(project)}
+          <div className="pick-tags">
+            <span className="mini-tag">{SOURCE_LABEL[item.source.key] || item.source.name}</span>
+            <span className="mini-tag">{KIND_LABEL[item.kind] || item.kind}</span>
+            <span className={`clarity-pill ${clarity.tone}`}>{clarity.text}</span>
+          </div>
+          <h2>{item.title}</h2>
+          <p className="muted">
+            {item.projectName}
+            {item.amountText ? ` · ${item.amountText}` : ""}
           </p>
         </div>
-        <div className="detail-cta-stack">
-          <button type="button" className="btn ghost" onClick={onBookmark}>
-            {bookmarked ? "★ 已在短名单" : "☆ 先收藏这个项目"}
-          </button>
-          <a className="btn primary" href={project.claimUrl} target="_blank" rel="noreferrer">
-            打开上手入口 ↗
-          </a>
-          {project.github && (
-            <a
-              className="btn ghost"
-              href={`https://github.com/${project.github}/issues`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              浏览全部 Issues
-            </a>
-          )}
-          {primaryTask && (
-            <button type="button" className="btn gold" onClick={() => onClaimTask(primaryTask)}>
-              准备接最高分任务（{primaryAmount}）
-            </button>
-          )}
-        </div>
+        <button type="button" className={`btn ghost ${bookmarked ? "active" : ""}`} onClick={onBookmark}>
+          {bookmarked ? "★ 已收藏" : "☆ 短名单"}
+        </button>
       </div>
 
-      <div className="info-grid">
-        <div className="info-block">
-          <h3>适合你吗？</h3>
-          <ul>
-            {(profile?.fitFor ?? ["请结合技术栈自行判断"]).map((x) => (
-              <li key={x}>✓ {x}</li>
-            ))}
-          </ul>
-          {profile?.notFitFor?.length ? (
-            <>
-              <h4>可能不太适合</h4>
-              <ul className="muted-list">
-                {profile.notFitFor.map((x) => (
-                  <li key={x}>– {x}</li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-          <div className="pill-row">
-            <span className="mini-tag">{profile?.difficulty ?? "未知难度"}</span>
-            {project.tech.map((t) => (
-              <span key={t} className="mini-tag">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="info-block settlement">
-          <div className="settle-head">
-            <h3>钱怎么结？</h3>
-            <span className={`tone ${clarity.tone}`}>{clarity.text}</span>
-          </div>
-          <dl className="settle-dl">
-            <div>
-              <dt>报酬模式</dt>
-              <dd>{settlement?.model ?? "见项目说明"}</dd>
-            </div>
-            <div>
-              <dt>大概能拿</dt>
-              <dd className="gold-text">{settlement?.amount ?? project.payment}</dd>
-            </div>
-            <div>
-              <dt>什么时候给</dt>
-              <dd>{settlement?.whenPaid ?? "需向维护者确认"}</dd>
-            </div>
-            <div>
-              <dt>走哪个平台</dt>
-              <dd>{settlement?.platform ?? "GitHub / 项目方"}</dd>
-            </div>
-          </dl>
-          <h4>想拿到钱，按这个做</h4>
-          <ol className="claim-steps">
-            {(settlement?.howToClaim ?? ["打开 Getting Started", "按官方流程认领"]).map(
-              (step, i) => (
-                <li key={step}>
-                  <span>{i + 1}</span>
-                  {step}
-                </li>
-              ),
-            )}
-          </ol>
-          {settlement?.notes && <p className="settle-note">{settlement.notes}</p>}
-        </div>
-      </div>
-
-      <div className="task-section">
-        <div className="task-head">
-          <h3>现在可以接的任务</h3>
-          <span className="muted">先点「准备去接」，我会提醒你核对结算</span>
-        </div>
-
-        {project.topTasks.length === 0 ? (
-          <div className="empty soft">
-            暂时没抓到开放任务。你可以先收藏项目，或打开上手入口看看有没有新 bounty。
-            <div style={{ marginTop: 12 }}>
-              <a className="btn primary" href={project.claimUrl} target="_blank" rel="noreferrer">
-                去上手入口看看 ↗
-              </a>
-            </div>
-          </div>
-        ) : (
-          <div className="task-list">
-            {project.topTasks.map((task, idx) => {
-              const amount = extractTaskAmount(task.title, project.amountHint);
-              return (
-                <article key={task.url} className={`task-card ${idx === 0 ? "best" : ""}`}>
-                  <div className="task-main">
-                    <div className="task-meta">
-                      {idx === 0 && <span className="reco-badge">先做这个</span>}
-                      <span
-                        className="badge"
-                        style={{
-                          background: `${KIND_COLORS[task.kind] ?? "#8B9BB4"}22`,
-                          borderColor: `${KIND_COLORS[task.kind] ?? "#8B9BB4"}55`,
-                          color: KIND_COLORS[task.kind] ?? "#8B9BB4",
-                        }}
-                      >
-                        {task.kind_zh}
-                      </span>
-                      <span className="score">推荐分 {task.score.toFixed(1)}</span>
-                      <span className="gold-text amount">{amount}</span>
-                    </div>
-                    <h4>{task.title}</h4>
-                    <p className="muted">
-                      {task.reasons.slice(0, 2).join(" · ") || "开放中"}
-                      {task.labels.length ? ` · ${task.labels.slice(0, 3).join(", ")}` : ""}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn gold claim"
-                    onClick={() => onClaimTask(task)}
-                  >
-                    准备去接
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {profile?.startSteps?.length ? (
-        <div className="start-box">
-          <h3>如果你决定做这个项目</h3>
-          <ol>
-            {profile.startSteps.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function ClaimSheet({
-  project,
-  task,
-  onClose,
-}: {
-  project: EnrichedProject;
-  task: Opportunity;
-  onClose: () => void;
-}) {
-  const amount = extractTaskAmount(task.title, project.amountHint);
-  const settlement = project.profile?.settlement;
-  const checks = [
-    "确认这个 Issue / bounty 还没被别人占走",
-    "扫一眼结算规则，知道合并后怎么申请付款",
-    "准备好按 CONTRIBUTING / bounty 页的要求提 PR",
-  ];
-
-  return (
-    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="claim-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sheet-head">
-          <div>
-            <div className="eyebrow">出发前 30 秒确认</div>
-            <h3 id="claim-title">准备去接：{project.name}</h3>
-          </div>
-          <button type="button" className="icon-close" onClick={onClose} aria-label="关闭">
-            ×
-          </button>
-        </div>
-
-        <p className="sheet-task">{task.title}</p>
-        <div className="sheet-pay">
-          <span>预估报酬</span>
-          <strong className="gold-text">{amount}</strong>
-        </div>
-
-        <ul className="sheet-checks">
-          {checks.map((c) => (
-            <li key={c}>{c}</li>
+      {item.localReasons.length > 0 && (
+        <div className="match-reasons">
+          {item.localReasons.map((r) => (
+            <span key={r} className="mini-tag">
+              {r}
+            </span>
           ))}
-        </ul>
-
-        {settlement && (
-          <p className="settle-note">
-            提醒：{settlement.platform} · {settlement.whenPaid}
-          </p>
-        )}
-
-        <div className="sheet-actions">
-          <button type="button" className="btn ghost" onClick={onClose}>
-            再想想
-          </button>
-          <a
-            className="btn gold"
-            href={task.url}
-            target="_blank"
-            rel="noreferrer"
-            onClick={onClose}
-          >
-            好，打开任务页 ↗
-          </a>
         </div>
+      )}
+
+      {item.summary && <p className="detail-summary">{item.summary}</p>}
+
+      <div className="coach-block">
+        <strong>结算提示</strong>
+        <p>{tips.settlement}</p>
+      </div>
+      <div className="coach-block">
+        <strong>怎么上手</strong>
+        <p>{tips.howTo}</p>
+      </div>
+
+      <div className="pick-tags">
+        {item.techTags.slice(0, 8).map((t) => (
+          <span key={t} className="mini-tag">
+            {t}
+          </span>
+        ))}
+      </div>
+
+      <div className="detail-cta-stack" style={{ marginTop: "1rem" }}>
+        <Link href={`/opportunity/${item.id}`} className="btn gold">
+          打开机会详情
+        </Link>
+        {external && (
+          <a className="btn primary" href={item.url} target="_blank" rel="noreferrer">
+            打开源站 ↗
+          </a>
+        )}
+        {item.kind !== "portal" && (
+          <Link href={`/opportunity/${item.id}`} className="btn ghost">
+            去认领协作
+          </Link>
+        )}
       </div>
     </div>
   );
 }
 
-function buildCoach({
-  skills,
-  goal,
-  filtered,
-  selected,
-}: {
+function buildCoach(input: {
   skills: string[];
   goal: GoalId;
-  filtered: EnrichedProject[];
-  selected: EnrichedProject | null;
-}) {
-  if (!skills.length) {
+  filtered: ScoredItem[];
+  selected: ScoredItem | null;
+}): { text: string; tone: string; actionLabel?: string; actionId?: string } {
+  if (!input.skills.length) {
     return {
-      tone: "warn",
-      text: "先点几个你会的技能吧。选得越准，后面越少踩坑。",
-      actionLabel: null as string | null,
-      actionProject: null as string | null,
-      actionKind: "select" as "select" | "claim",
+      tone: "tone-warn",
+      text: "先点几个技能标签，我会按技能与目标重排机会列表。",
     };
   }
-  if (!filtered.length) {
+  if (!input.filtered.length) {
     return {
-      tone: "warn",
-      text: "按你现在的目标，暂时没有很合适的项目。换个目标，或者先不限技能看看。",
-      actionLabel: null,
-      actionProject: null,
-      actionKind: "select" as const,
+      tone: "tone-warn",
+      text: "当前筛选偏严。换目标或点「先不限技能」再试。",
     };
   }
-  const top = filtered[0];
-  if (!selected || selected.name === top.name) {
-    const goalText =
-      goal === "clear"
-        ? "你很在意结算清晰"
-        : goal === "big"
-          ? "你想冲大额"
-          : goal === "learn"
-            ? "你想先练手"
-            : "你想尽快接到单";
+  const top = input.filtered[0];
+  if (!input.selected) {
     return {
-      tone: "good",
-      text: `${goalText}，又会 ${skills.slice(0, 3).join(" / ")} —— 我最推荐从「${top.name}」开始。${whyRecommended(top, goal, skills)}`,
-      actionLabel: `看看 ${top.name}`,
-      actionProject: top.name,
-      actionKind: "select" as const,
+      tone: "tone-good",
+      text: `按你的目标「${GOALS.find((g) => g.id === input.goal)?.title}」，最靠前的是「${top.projectName}」——${top.localReasons[0] || "综合匹配度高"}。`,
+      actionLabel: "查看这条机会",
+      actionId: top.id,
     };
   }
+  const tips = coachTipsForTask(input.selected);
   return {
-    tone: "good",
-    text: `你正在看「${selected.name}」。确认结算方式后，选一个任务点「准备去接」，我会帮你做出发前检查。`,
-    actionLabel: selected.topTasks[0] ? "准备接最高分任务" : null,
-    actionProject: selected.name,
-    actionKind: "claim" as const,
+    tone: tips.clarity === "clear" ? "tone-good" : "tone-info",
+    text: `${input.selected.projectName}：${tips.settlement} ${tips.howTo}`,
+    actionLabel: "打开详情准备接单",
+    actionId: input.selected.id,
   };
-}
-
-function whyRecommended(p: EnrichedProject, goal: GoalId, skills: string[]) {
-  const bits: string[] = [];
-  if (p.matchedSkills.length) bits.push(`匹配你的 ${p.matchedSkills.slice(0, 2).join("、")}`);
-  if (p.profile?.settlement.clarity === "clear") bits.push("结算路径清楚");
-  if (p.bountyCount > 0) bits.push(`有 ${p.bountyCount} 个奖金向任务`);
-  if (goal === "learn" && p.profile?.difficulty === "入门") bits.push("门槛更友好");
-  if (goal === "big") bits.push("更偏向高报酬");
-  if (!bits.length) bits.push(`当前有 ${p.opportunities.length} 个可跟进任务`);
-  return bits.join(" · ");
-}
-
-function humanOneLiner(p: EnrichedProject) {
-  if (p.name === "Expensify") return "做移动端/前端小修小补，标题里写着价钱，相对好上手。";
-  if (p.name === "tscircuit") return "用 React 写电路，钱走 Algora，适合前端想接点新鲜的。";
-  if (p.name === "RudderStack") return "偏硬核数据管道，钱可能很多，但别当第一单。";
-  if (p.name === "Appflowy") return "不是点 Issue 就结账，而是申请导师制月薪。";
-  if (p.name === "BusKill") return "安全/打包向，大额单很香，但要对 Linux/Qubes 有底。";
-  return p.profile?.summaryZh?.slice(0, 42) ?? "先看结算，再决定要不要投入时间。";
 }
 
 function formatTime(iso: string) {
   try {
-    return new Intl.DateTimeFormat("zh-CN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Shanghai",
-    }).format(new Date(iso));
+    return new Date(iso).toLocaleString("zh-CN", {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
     return iso;
   }
